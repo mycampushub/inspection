@@ -575,7 +575,7 @@ export default function ReportingAnalytics() {
   }
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
@@ -789,6 +789,6 @@ export default function ReportingAnalytics() {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
