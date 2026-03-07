@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import {
   ArrowUp,
   Calendar,
@@ -123,7 +122,7 @@ export default function Dashboard() {
   const [timeframe, setTimeframe] = useState("year")
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SidebarInset>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Dashboard</div>
@@ -406,11 +405,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 {upcomingContracts.map((contract) => (
-                  <Link 
-                    key={contract.id} 
-                    href={`/sourcing-contracts/contracts/${contract.id}`}
-                    className="flex items-center justify-between border-b pb-2 last:border-0 hover:bg-muted/50 -mx-2 px-2 py-2 rounded-md transition-colors"
-                  >
+                  <div key={contract.id} className="flex items-center justify-between border-b pb-2 last:border-0">
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none">{contract.supplier}</p>
                       <p className="text-xs text-muted-foreground">
@@ -434,16 +429,14 @@ export default function Dashboard() {
                         {contract.daysLeft} days
                       </Badge>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href="/sourcing-contracts/contracts">
-                  <FileWarning className="mr-2 h-4 w-4" />
-                  View All Expiring Contracts
-                </Link>
+              <Button variant="outline" size="sm" className="w-full">
+                <FileWarning className="mr-2 h-4 w-4" />
+                View All Expiring Contracts
               </Button>
             </CardFooter>
           </Card>
@@ -718,6 +711,6 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
-    </div>
+    </SidebarInset>
   )
 }

@@ -23,15 +23,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -39,10 +30,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -193,31 +182,9 @@ export default function RFxManagement() {
   const [selectedTab, setSelectedTab] = useState("active")
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null)
-  const [showNewRfxDialog, setShowNewRfxDialog] = useState(false)
-  const [newRfx, setNewRfx] = useState({
-    title: "",
-    type: "RFP",
-    department: "",
-    dueDate: "",
-    estimatedValue: "",
-    description: "",
-  })
 
   const toggleEventExpansion = (id: string) => {
     setExpandedEvent(expandedEvent === id ? null : id)
-  }
-
-  const handleCreateRfx = () => {
-    // In a real app, this would make an API call
-    setShowNewRfxDialog(false)
-    setNewRfx({
-      title: "",
-      type: "RFP",
-      department: "",
-      dueDate: "",
-      estimatedValue: "",
-      description: "",
-    })
   }
 
   // Filter RFx events based on search and tab
@@ -235,7 +202,7 @@ export default function RFxManagement() {
   })
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SidebarInset>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <Button variant="ghost" size="icon" asChild className="mr-2">
@@ -254,109 +221,13 @@ export default function RFxManagement() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Dialog open={showNewRfxDialog} onOpenChange={setShowNewRfxDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Create New RFx
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Create New RFx Event</DialogTitle>
-                <DialogDescription>
-                  Create a new Request for Proposal (RFP), Quote (RFQ), or Information (RFI).
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rfx-title">Title *</Label>
-                    <Input
-                      id="rfx-title"
-                      placeholder="Enter RFx title"
-                      value={newRfx.title}
-                      onChange={(e) => setNewRfx({ ...newRfx, title: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rfx-type">RFx Type *</Label>
-                    <Select
-                      value={newRfx.type}
-                      onValueChange={(value) => setNewRfx({ ...newRfx, type: value })}
-                    >
-                      <SelectTrigger id="rfx-type">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="RFP">Request for Proposal (RFP)</SelectItem>
-                        <SelectItem value="RFQ">Request for Quote (RFQ)</SelectItem>
-                        <SelectItem value="RFI">Request for Information (RFI)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rfx-department">Department *</Label>
-                    <Select
-                      value={newRfx.department}
-                      onValueChange={(value) => setNewRfx({ ...newRfx, department: value })}
-                    >
-                      <SelectTrigger id="rfx-department">
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IT">IT</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem>
-                        <SelectItem value="Administration">Administration</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rfx-due">Response Due Date *</Label>
-                    <Input
-                      id="rfx-due"
-                      type="date"
-                      value={newRfx.dueDate}
-                      onChange={(e) => setNewRfx({ ...newRfx, dueDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rfx-value">Estimated Value (USD)</Label>
-                  <Input
-                    id="rfx-value"
-                    type="number"
-                    placeholder="0.00"
-                    value={newRfx.estimatedValue}
-                    onChange={(e) => setNewRfx({ ...newRfx, estimatedValue: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rfx-description">Description *</Label>
-                  <Textarea
-                    id="rfx-description"
-                    placeholder="Describe the requirements and scope..."
-                    value={newRfx.description}
-                    onChange={(e) => setNewRfx({ ...newRfx, description: e.target.value })}
-                    className="min-h-[100px]"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowNewRfxDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateRfx}>Create RFx</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Create New RFx
+          </Button>
         </div>
       </div>
-      <div className="space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <Tabs defaultValue="active" value={selectedTab} onValueChange={setSelectedTab}>
           <div className="flex items-center justify-between">
             <TabsList>
@@ -461,13 +332,8 @@ export default function RFxManagement() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link href={`/sourcing-contracts/rfx/${event.id}`}>View RFx</Link>
-                              </DropdownMenuItem>
                               <DropdownMenuItem>Edit RFx</DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/sourcing-contracts/rfx/${event.id}`}>View Responses</Link>
-                              </DropdownMenuItem>
+                              <DropdownMenuItem>View Responses</DropdownMenuItem>
                               <DropdownMenuItem>Invite Suppliers</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem>Download as PDF</DropdownMenuItem>
@@ -704,17 +570,15 @@ export default function RFxManagement() {
                             <Upload className="mr-2 h-4 w-4" />
                             Invite More Suppliers
                           </Button>
-                          <Button asChild>
-                            <Link href={`/sourcing-contracts/rfx/${event.id}`}>
-                              <Save className="mr-2 h-4 w-4" />
-                              {event.status === "Draft"
-                                ? "Edit & Publish"
-                                : event.status === "Active"
-                                  ? "View Details"
-                                  : event.status === "Evaluation"
-                                    ? "Complete Evaluation"
-                                    : "View Award"}
-                            </Link>
+                          <Button>
+                            <Save className="mr-2 h-4 w-4" />
+                            {event.status === "Draft"
+                              ? "Publish RFx"
+                              : event.status === "Active"
+                                ? "Close RFx"
+                                : event.status === "Evaluation"
+                                  ? "Complete Evaluation"
+                                  : "View Award"}
                           </Button>
                         </div>
                       </CardContent>
@@ -754,6 +618,6 @@ export default function RFxManagement() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </SidebarInset>
   )
 }

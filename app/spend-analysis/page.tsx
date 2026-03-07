@@ -94,7 +94,7 @@ export default function SpendAnalysis() {
   const [view, setView] = useState("overview")
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SidebarInset>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Spend Analysis</div>
@@ -124,7 +124,7 @@ export default function SpendAnalysis() {
           </Button>
         </div>
       </div>
-      <div className="space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between">
           <Tabs defaultValue="overview" value={view} onValueChange={setView}>
             <TabsList>
@@ -456,6 +456,6 @@ export default function SpendAnalysis() {
           </div>
         </div>
       </div>
-    </div>
+    </SidebarInset>
   )
 }

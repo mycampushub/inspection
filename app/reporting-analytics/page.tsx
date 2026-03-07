@@ -477,7 +477,21 @@ export default function ReportingAnalytics() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [dashboardName, setDashboardName] = useState("My Dashboard")
-  const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(defaultDashboard)
+  const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(() => {
+    // Try to load from localStorage if available
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("dashboardWidgets")
+      return saved ? JSON.parse(saved) : defaultDashboard
+    }
+    return defaultDashboard
+  })
+
+  // Save dashboard to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dashboardWidgets", JSON.stringify(dashboardWidgets))
+    }
+  }, [dashboardWidgets])
 
   // Drag and drop state
   const [draggedWidget, setDraggedWidget] = useState<string | null>(null)
@@ -560,22 +574,22 @@ export default function ReportingAnalytics() {
   // If not mounted yet, return a loading state that matches the final layout
   if (!mounted) {
     return (
-      <>
+      <SidebarInset>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
           <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
         </div>
-        <div className="space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold tracking-tight">Loading dashboard...</h1>
           </div>
         </div>
-      </>
+      </SidebarInset>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SidebarInset>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
@@ -655,7 +669,7 @@ export default function ReportingAnalytics() {
           </Dialog>
         </div>
       </div>
-      <div className="space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">{dashboardName}</h1>
@@ -789,6 +803,6 @@ export default function ReportingAnalytics() {
           </div>
         )}
       </div>
-    </div>
+    </SidebarInset>
   )
 }

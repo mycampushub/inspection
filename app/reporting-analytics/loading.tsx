@@ -15,7 +15,7 @@ export default function Loading() {
         </div>
       </div>
 
-      <div className="space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="space-y-4">
           <Skeleton className="h-10 w-[300px]" />
 

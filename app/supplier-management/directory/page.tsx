@@ -28,15 +28,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,10 +35,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
 // Sample data for suppliers
@@ -350,37 +339,9 @@ export default function SupplierDirectory() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [selectedTier, setSelectedTier] = useState("all")
-  const [showNewSupplierDialog, setShowNewSupplierDialog] = useState(false)
-  const [newSupplier, setNewSupplier] = useState({
-    name: "",
-    category: "",
-    tier: "",
-    location: "",
-    contactName: "",
-    contactEmail: "",
-    contactPhone: "",
-    website: "",
-    description: "",
-  })
 
   const toggleSupplierExpansion = (id: string) => {
     setExpandedSupplier(expandedSupplier === id ? null : id)
-  }
-
-  const handleCreateSupplier = () => {
-    // In a real app, this would make an API call
-    setShowNewSupplierDialog(false)
-    setNewSupplier({
-      name: "",
-      category: "",
-      tier: "",
-      location: "",
-      contactName: "",
-      contactEmail: "",
-      contactPhone: "",
-      website: "",
-      description: "",
-    })
   }
 
   // Filter suppliers based on search and filters
@@ -399,7 +360,7 @@ export default function SupplierDirectory() {
   })
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SidebarInset>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <Button variant="ghost" size="icon" asChild className="mr-2">
@@ -418,142 +379,13 @@ export default function SupplierDirectory() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Dialog open={showNewSupplierDialog} onOpenChange={setShowNewSupplierDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Supplier
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px]">
-              <DialogHeader>
-                <DialogTitle>Add New Supplier</DialogTitle>
-                <DialogDescription>
-                  Add a new supplier to your directory. All fields marked with * are required.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-name">Supplier Name *</Label>
-                    <Input
-                      id="supplier-name"
-                      placeholder="Enter supplier name"
-                      value={newSupplier.name}
-                      onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-category">Category *</Label>
-                    <Select
-                      value={newSupplier.category}
-                      onValueChange={(value) => setNewSupplier({ ...newSupplier, category: value })}
-                    >
-                      <SelectTrigger id="supplier-category">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IT Services">IT Services</SelectItem>
-                        <SelectItem value="Office Supplies">Office Supplies</SelectItem>
-                        <SelectItem value="Logistics">Logistics</SelectItem>
-                        <SelectItem value="Marketing Services">Marketing Services</SelectItem>
-                        <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                        <SelectItem value="Consulting">Consulting</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-tier">Tier *</Label>
-                    <Select
-                      value={newSupplier.tier}
-                      onValueChange={(value) => setNewSupplier({ ...newSupplier, tier: value })}
-                    >
-                      <SelectTrigger id="supplier-tier">
-                        <SelectValue placeholder="Select tier" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Strategic">Strategic</SelectItem>
-                        <SelectItem value="Preferred">Preferred</SelectItem>
-                        <SelectItem value="Approved">Approved</SelectItem>
-                        <SelectItem value="Potential">Potential</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-location">Location *</Label>
-                    <Input
-                      id="supplier-location"
-                      placeholder="City, Country"
-                      value={newSupplier.location}
-                      onChange={(e) => setNewSupplier({ ...newSupplier, location: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-contact-name">Contact Name *</Label>
-                    <Input
-                      id="supplier-contact-name"
-                      placeholder="Primary contact name"
-                      value={newSupplier.contactName}
-                      onChange={(e) => setNewSupplier({ ...newSupplier, contactName: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-contact-email">Contact Email *</Label>
-                    <Input
-                      id="supplier-contact-email"
-                      type="email"
-                      placeholder="email@supplier.com"
-                      value={newSupplier.contactEmail}
-                      onChange={(e) => setNewSupplier({ ...newSupplier, contactEmail: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-contact-phone">Contact Phone</Label>
-                    <Input
-                      id="supplier-contact-phone"
-                      type="tel"
-                      placeholder="+1 (555) 000-0000"
-                      value={newSupplier.contactPhone}
-                      onChange={(e) => setNewSupplier({ ...newSupplier, contactPhone: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier-website">Website</Label>
-                    <Input
-                      id="supplier-website"
-                      placeholder="www.supplier.com"
-                      value={newSupplier.website}
-                      onChange={(e) => setNewSupplier({ ...newSupplier, website: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="supplier-description">Description</Label>
-                  <Textarea
-                    id="supplier-description"
-                    placeholder="Brief description of the supplier..."
-                    value={newSupplier.description}
-                    onChange={(e) => setNewSupplier({ ...newSupplier, description: e.target.value })}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowNewSupplierDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateSupplier}>Add Supplier</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Supplier
+          </Button>
         </div>
       </div>
-      <div className="space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 w-full max-w-sm">
             <Search className="h-4 w-4 text-muted-foreground" />
@@ -988,11 +820,9 @@ export default function SupplierDirectory() {
                         <Calendar className="mr-2 h-4 w-4" />
                         Schedule Meeting
                       </Button>
-                      <Button asChild>
-                        <Link href={`/supplier-management/directory/${supplier.id}`}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Full Profile
-                        </Link>
+                      <Button>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Full Profile
                       </Button>
                     </div>
                   </CardContent>
@@ -1014,6 +844,6 @@ export default function SupplierDirectory() {
           )}
         </div>
       </div>
-    </div>
+    </SidebarInset>
   )
 }

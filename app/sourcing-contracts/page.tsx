@@ -161,7 +161,7 @@ export default function SourcingContracts() {
   const [searchQuery, setSearchQuery] = useState("")
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <SidebarInset>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Sourcing & Contracts</div>
@@ -176,7 +176,7 @@ export default function SourcingContracts() {
           </Button>
         </div>
       </div>
-      <div className="space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
           <div className="flex items-center justify-between">
             <TabsList>
@@ -677,6 +677,6 @@ export default function SourcingContracts() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </SidebarInset>
   )
 }
