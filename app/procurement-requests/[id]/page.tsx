@@ -105,10 +105,10 @@ export default function ProcurementRequestDetail() {
 
   if (!request) {
     return (
-      <SidebarInset>
+      </>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
-          <Button variant="ghost" size="icon" asChild onClick={() => router.push("/procurement-requests")}>
+          <Button variant="ghost" size="icon" onClick={() => router.push("/procurement-requests")}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
@@ -117,7 +117,7 @@ export default function ProcurementRequestDetail() {
         <div className="flex-1 flex items-center justify-center">
           <p>Procurement request not found.</p>
         </div>
-      </SidebarInset>
+      </>
     )
   }
 
@@ -150,10 +150,10 @@ export default function ProcurementRequestDetail() {
   }
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
-        <Button variant="ghost" size="icon" asChild onClick={() => router.push("/procurement-requests")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/procurement-requests")}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
@@ -677,6 +677,6 @@ export default function ProcurementRequestDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarInset>
+    </>
   )
 }

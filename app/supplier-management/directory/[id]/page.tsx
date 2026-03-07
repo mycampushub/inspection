@@ -121,10 +121,10 @@ export default function SupplierDetail() {
 
   if (!supplier) {
     return (
-      <SidebarInset>
+      </>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
-          <Button variant="ghost" size="icon" asChild onClick={() => router.push("/supplier-management/directory")}>
+          <Button variant="ghost" size="icon" onClick={() => router.push("/supplier-management/directory")}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
@@ -133,7 +133,7 @@ export default function SupplierDetail() {
         <div className="flex-1 flex items-center justify-center">
           <p>Supplier not found.</p>
         </div>
-      </SidebarInset>
+      </>
     )
   }
 
@@ -191,10 +191,10 @@ export default function SupplierDetail() {
   }
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
-        <Button variant="ghost" size="icon" asChild onClick={() => router.push("/supplier-management/directory")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/supplier-management/directory")}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
@@ -685,6 +685,6 @@ export default function SupplierDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarInset>
+    </>
   )
 }

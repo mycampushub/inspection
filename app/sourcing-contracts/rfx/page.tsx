@@ -235,7 +235,7 @@ export default function RFxManagement() {
   })
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <Button variant="ghost" size="icon" asChild className="mr-2">
@@ -678,7 +678,7 @@ export default function RFxManagement() {
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
                                         {supplier.responseStatus === "Submitted" && (
-                                          <>
+                                          </>
                                             <DropdownMenuItem>View Response</DropdownMenuItem>
                                             <DropdownMenuItem>Evaluate</DropdownMenuItem>
                                             <DropdownMenuSeparator />
@@ -754,6 +754,6 @@ export default function RFxManagement() {
           </TabsContent>
         </Tabs>
       </div>
-    </SidebarInset>
+    </>
   )
 }

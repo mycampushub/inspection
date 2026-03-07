@@ -399,7 +399,7 @@ export default function SupplierDirectory() {
   })
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <Button variant="ghost" size="icon" asChild className="mr-2">
@@ -1014,6 +1014,6 @@ export default function SupplierDirectory() {
           )}
         </div>
       </div>
-    </SidebarInset>
+    </>
   )
 }

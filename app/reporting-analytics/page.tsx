@@ -560,7 +560,7 @@ export default function ReportingAnalytics() {
   // If not mounted yet, return a loading state that matches the final layout
   if (!mounted) {
     return (
-      <SidebarInset>
+      </>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
           <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
@@ -570,12 +570,12 @@ export default function ReportingAnalytics() {
             <h1 className="text-2xl font-bold tracking-tight">Loading dashboard...</h1>
           </div>
         </div>
-      </SidebarInset>
+      </>
     )
   }
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
@@ -789,6 +789,6 @@ export default function ReportingAnalytics() {
           </div>
         )}
       </div>
-    </SidebarInset>
+    </>
   )
 }

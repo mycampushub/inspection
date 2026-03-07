@@ -167,10 +167,10 @@ export default function RFxEventDetail() {
 
   if (!rfxEvent) {
     return (
-      <SidebarInset>
+      </>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
-          <Button variant="ghost" size="icon" asChild onClick={() => router.push("/sourcing-contracts/rfx")}>
+          <Button variant="ghost" size="icon" onClick={() => router.push("/sourcing-contracts/rfx")}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
@@ -179,7 +179,7 @@ export default function RFxEventDetail() {
         <div className="flex-1 flex items-center justify-center">
           <p>RFx event not found.</p>
         </div>
-      </SidebarInset>
+      </>
     )
   }
 
@@ -231,10 +231,10 @@ export default function RFxEventDetail() {
   }
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
-        <Button variant="ghost" size="icon" asChild onClick={() => router.push("/sourcing-contracts/rfx")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/sourcing-contracts/rfx")}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
@@ -551,7 +551,7 @@ export default function RFxEventDetail() {
                                           </DropdownMenuItem>
                                         )}
                                         {supplier.status === "Invited" && (
-                                          <>
+                                          </>
                                             <DropdownMenuItem onClick={() => {
                                               updateSupplierRFxResponse(rfxEvent.id, supplier.id, 85, "Submitted")
                                             }}>
@@ -651,7 +651,7 @@ export default function RFxEventDetail() {
                 Send Reminder
               </Button>
               {rfxEvent.status !== "Draft" && (
-                <>
+                </>
                   <Button className="w-full justify-start" size="sm" onClick={() => toast({ title: "Report Generated", description: "Analysis report generated", variant: "success" })}>
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Generate Report
@@ -753,6 +753,6 @@ export default function RFxEventDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarInset>
+    </>
   )
 }

@@ -135,10 +135,10 @@ export default function ContractDetail() {
 
   if (!contract) {
     return (
-      <SidebarInset>
+      </>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
-          <Button variant="ghost" size="icon" asChild onClick={() => router.push("/sourcing-contracts/contracts")}>
+          <Button variant="ghost" size="icon" onClick={() => router.push("/sourcing-contracts/contracts")}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
@@ -147,7 +147,7 @@ export default function ContractDetail() {
         <div className="flex-1 flex items-center justify-center">
           <p>Contract not found.</p>
         </div>
-      </SidebarInset>
+      </>
     )
   }
 
@@ -198,10 +198,10 @@ export default function ContractDetail() {
   }
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
-        <Button variant="ghost" size="icon" asChild onClick={() => router.push("/sourcing-contracts/contracts")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/sourcing-contracts/contracts")}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
@@ -346,7 +346,7 @@ export default function ContractDetail() {
                   </CardHeader>
                   <CardContent>
                     {contract.daysToExpiry !== null ? (
-                      <>
+                      </>
                         <div className="text-3xl font-bold">{contract.daysToExpiry} days</div>
                         <p className="text-xs text-muted-700">
                           {contract.daysToExpiry <= 30 ? "Urgent attention required" : contract.daysToExpiry <= 90 ? "Plan for renewal" : "Good standing"}
@@ -418,7 +418,7 @@ export default function ContractDetail() {
                     </p>
                   </div>
                   {supplier && (
-                    <>
+                    </>
                       <div>
                         <Label>Contact Person</Label>
                         <p className="text-sm text-muted-foreground">
@@ -778,6 +778,6 @@ export default function ContractDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarInset>
+    </>
   )
 }

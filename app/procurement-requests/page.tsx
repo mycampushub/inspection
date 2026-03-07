@@ -233,7 +233,7 @@ export default function ProcurementRequests() {
   }
 
   return (
-    <SidebarInset>
+    </>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Procurement Requests</div>
@@ -539,7 +539,7 @@ export default function ProcurementRequests() {
                                 <DropdownMenuItem onClick={() => openEditDialog(request.id)}>Edit Request</DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {request.status === "Pending Approval" && (
-                                  <>
+                                  </>
                                     <DropdownMenuItem onClick={() => { setSelectedRequest(request.id); setShowApproveDialog(true); }}>
                                       <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
                                       Approve
@@ -949,6 +949,6 @@ export default function ProcurementRequests() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </SidebarInset>
+    </>
   )
 }

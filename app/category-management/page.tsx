@@ -644,7 +644,7 @@ export default function CategoryManagement() {
                       </TableRow>
                     ) : (
                       filteredCategories.map((category) => (
-                        <>
+                        </>
                           <TableRow key={category.id} className="cursor-pointer hover:bg-muted/50">
                             <TableCell className="font-medium" onClick={() => toggleCategory(category.id)}>
                               <div className="flex items-center">
@@ -737,7 +737,7 @@ export default function CategoryManagement() {
         {/* Category Details Tab */}
         <TabsContent value="details" className="space-y-4">
           {selectedCategory && (
-            <>
+            </>
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">{selectedCategory.name}</h2>
                 <div className="flex items-center gap-2">
