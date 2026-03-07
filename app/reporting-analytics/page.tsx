@@ -477,21 +477,7 @@ export default function ReportingAnalytics() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [dashboardName, setDashboardName] = useState("My Dashboard")
-  const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(() => {
-    // Try to load from localStorage if available
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("dashboardWidgets")
-      return saved ? JSON.parse(saved) : defaultDashboard
-    }
-    return defaultDashboard
-  })
-
-  // Save dashboard to localStorage when it changes
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("dashboardWidgets", JSON.stringify(dashboardWidgets))
-    }
-  }, [dashboardWidgets])
+  const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(defaultDashboard)
 
   // Drag and drop state
   const [draggedWidget, setDraggedWidget] = useState<string | null>(null)

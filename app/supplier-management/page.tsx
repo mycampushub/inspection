@@ -22,6 +22,9 @@ import {
   ThumbsUp,
   Truck,
   Users,
+  Edit,
+  Trash2,
+  FileCheck,
 } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,17 +32,41 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { useAppStore } from "@/lib/store"
+import { useToast } from "@/lib/toast"
 
 // Sample data for suppliers
 const suppliers = [
@@ -260,8 +287,130 @@ const suppliersByLocation = [
 ]
 
 export default function SupplierManagement() {
+  const { toast, notifications, dismiss } = useToast()
+  const { suppliers, addSupplier, updateSupplier, deleteSupplier, approveSupplier, updateSupplierPerformance } = useAppStore()
+
   const [selectedTab, setSelectedTab] = useState("overview")
   const [searchQuery, setSearchQuery] = useState("")
+
+  // Dialog states
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null)
+
+  const [newSupplier, setNewSupplier] = useState({
+    name: "",
+    logo: "",
+    category: "",
+    tier: "Preferred" as "Strategic" | "Preferred" | "Tactical",
+    location: "",
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+    website: "",
+    performanceScore: 80,
+    riskLevel: "Medium" as "Low" | "Medium" | "High",
+    paymentTerms: "Net 30",
+    financialHealth: "Good",
+    description: "",
+  })
+
+  const handleAddSupplier = () => {
+    if (!newSupplier.name || !newSupplier.category || !newSupplier.location) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    addSupplier({
+      ...newSupplier,
+      status: "Pending",
+      products: [],
+      contracts: [],
+      performanceHistory: [],
+    })
+
+    setShowAddDialog(false)
+    setNewSupplier({
+      name: "",
+      logo: "",
+      category: "",
+      tier: "Preferred",
+      location: "",
+      contactName: "",
+      contactEmail: "",
+      contactPhone: "",
+      website: "",
+      performanceScore: 80,
+      riskLevel: "Medium",
+      paymentTerms: "Net 30",
+      financialHealth: "Good",
+      description: "",
+    })
+  }
+
+  const handleEditSupplier = () => {
+    if (!selectedSupplier) return
+
+    updateSupplier(selectedSupplier, newSupplier)
+    setShowEditDialog(false)
+    setSelectedSupplier(null)
+    toast({
+      title: "Supplier Updated",
+      description: "Supplier information has been updated successfully.",
+      variant: "success",
+    })
+  }
+
+  const handleDeleteSupplier = () => {
+    if (!selectedSupplier) return
+    deleteSupplier(selectedSupplier)
+    setShowDeleteDialog(false)
+    setSelectedSupplier(null)
+  }
+
+  const handleApproveSupplier = (id: string) => {
+    approveSupplier(id)
+    toast({
+      title: "Supplier Approved",
+      description: `Supplier ${id} has been approved.`,
+      variant: "success",
+    })
+  }
+
+  const openEditDialog = (supplierId: string) => {
+    const supplier = suppliers.find((s) => s.id === supplierId)
+    if (supplier) {
+      setSelectedSupplier(supplierId)
+      setNewSupplier({
+        name: supplier.name,
+        logo: supplier.logo,
+        category: supplier.category,
+        tier: supplier.tier,
+        location: supplier.location,
+        contactName: supplier.contactName,
+        contactEmail: supplier.contactEmail,
+        contactPhone: supplier.contactPhone,
+        website: supplier.website,
+        performanceScore: supplier.performanceScore,
+        riskLevel: supplier.riskLevel,
+        paymentTerms: supplier.paymentTerms,
+        financialHealth: supplier.financialHealth,
+        description: supplier.description,
+      })
+      setShowEditDialog(true)
+    }
+  }
+
+  const filteredSuppliers = suppliers.filter((supplier) =>
+    supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    supplier.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    supplier.location.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <SidebarInset>
@@ -269,7 +418,7 @@ export default function SupplierManagement() {
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Supplier Management</div>
         <div className="ml-auto flex items-center gap-4">
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={() => { toast({ title: "Refreshed", description: "Suppliers refreshed successfully", variant: "success" }); }}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
@@ -277,10 +426,146 @@ export default function SupplierManagement() {
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Supplier
-          </Button>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Supplier
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Supplier</DialogTitle>
+                <DialogDescription>
+                  Fill in the supplier details. All fields marked with * are required.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier-name">Company Name *</Label>
+                  <Input
+                    id="supplier-name"
+                    placeholder="Enter company name"
+                    value={newSupplier.name}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier-category">Category *</Label>
+                  <Input
+                    id="supplier-category"
+                    placeholder="e.g., IT Services, Office Supplies"
+                    value={newSupplier.category}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, category: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="supplier-tier">Tier</Label>
+                    <Select
+                      value={newSupplier.tier}
+                      onValueChange={(value) => setNewSupplier({ ...newSupplier, tier: value as "Strategic" | "Preferred" | "Tactical" })}
+                    >
+                      <SelectTrigger id="supplier-tier">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Strategic">Strategic</SelectItem>
+                        <SelectItem value="Preferred">Preferred</SelectItem>
+                        <SelectItem value="Tactical">Tactical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="supplier-risk">Risk Level</Label>
+                    <Select
+                      value={newSupplier.riskLevel}
+                      onValueChange={(value) => setNewSupplier({ ...newSupplier, riskLevel: value as "Low" | "Medium" | "High" })}
+                    >
+                      <SelectTrigger id="supplier-risk">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier-location">Location *</Label>
+                  <Input
+                    id="supplier-location"
+                    placeholder="City, Country"
+                    value={newSupplier.location}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, location: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="contact-name">Contact Name</Label>
+                    <Input
+                      id="contact-name"
+                      placeholder="Contact person"
+                      value={newSupplier.contactName}
+                      onChange={(e) => setNewSupplier({ ...newSupplier, contactName: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="contact-phone">Phone</Label>
+                    <Input
+                      id="contact-phone"
+                      placeholder="+1 (555) 123-4567"
+                      value={newSupplier.contactPhone}
+                      onChange={(e) => setNewSupplier({ ...newSupplier, contactPhone: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="contact-email">Email</Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    placeholder="contact@supplier.com"
+                    value={newSupplier.contactEmail}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, contactEmail: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier-website">Website</Label>
+                  <Input
+                    id="supplier-website"
+                    placeholder="https://www.supplier.com"
+                    value={newSupplier.website}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, website: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="payment-terms">Payment Terms</Label>
+                  <Input
+                    id="payment-terms"
+                    placeholder="Net 30"
+                    value={newSupplier.paymentTerms}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, paymentTerms: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier-description">Description</Label>
+                  <Textarea
+                    id="supplier-description"
+                    placeholder="Brief description of the supplier..."
+                    value={newSupplier.description}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, description: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+                <Button onClick={handleAddSupplier}>Add Supplier</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -302,25 +587,26 @@ export default function SupplierManagement() {
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">248</div>
+                  <div className="text-2xl font-bold">{suppliers.length}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-500 inline-flex items-center">
                       <Check className="mr-1 h-3 w-3" />
-                      12 new this quarter
+                      Active suppliers
                     </span>
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
+                  <CardTitle className="text-sm font-medium">Approved Suppliers</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">165</div>
+                  <div className="text-2xl font-bold">{suppliers.filter(s => s.status === 'Approved').length}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-500 inline-flex items-center">
-                      <Check className="mr-1 h-3 w-3" />8 new this month
+                      <Check className="mr-1 h-3 w-3" />
+                      {Math.round((suppliers.filter(s => s.status === 'Approved').length / suppliers.length) * 100)}% of total
                     </span>
                   </p>
                 </CardContent>
@@ -331,11 +617,13 @@ export default function SupplierManagement() {
                   <Star className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">87%</div>
+                  <div className="text-2xl font-bold">
+                    {Math.round(suppliers.reduce((sum, s) => sum + s.performanceScore, 0) / suppliers.length)}%
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-500 inline-flex items-center">
                       <Check className="mr-1 h-3 w-3" />
-                      +2% from last quarter
+                      Across all suppliers
                     </span>
                   </p>
                 </CardContent>
@@ -346,10 +634,11 @@ export default function SupplierManagement() {
                   <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">12</div>
+                  <div className="text-2xl font-bold">{suppliers.filter(s => s.riskLevel === 'High').length}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-red-500 inline-flex items-center">
-                      <AlertCircle className="mr-1 h-3 w-3" />3 require immediate action
+                      <AlertCircle className="mr-1 h-3 w-3" />
+                      Require attention
                     </span>
                   </p>
                 </CardContent>
@@ -566,7 +855,7 @@ export default function SupplierManagement() {
                 </div>
 
                 <div className="space-y-4">
-                  {suppliers.map((supplier) => (
+                  {filteredSuppliers.map((supplier) => (
                     <Card key={supplier.id} className="overflow-hidden">
                       <CardContent className="p-0">
                         <div className="flex flex-col md:flex-row md:items-center justify-between p-6">
@@ -667,16 +956,33 @@ export default function SupplierManagement() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem asChild>
                                   <Link href={`/supplier-management/directory/${supplier.id}`}>View Profile</Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>Edit Supplier</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEditDialog(supplier.id)}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit Supplier
+                                </DropdownMenuItem>
                                 <DropdownMenuItem>View Contracts</DropdownMenuItem>
                                 <DropdownMenuSeparator />
+                                {supplier.status !== "Approved" && (
+                                  <DropdownMenuItem onClick={() => handleApproveSupplier(supplier.id)}>
+                                    <FileCheck className="mr-2 h-4 w-4 text-green-500" />
+                                    Approve Supplier
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem>Performance History</DropdownMenuItem>
                                 <DropdownMenuItem>Risk Assessment</DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => { setSelectedSupplier(supplier.id); setShowDeleteDialog(true); }}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -684,6 +990,11 @@ export default function SupplierManagement() {
                       </CardContent>
                     </Card>
                   ))}
+                  {filteredSuppliers.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No suppliers found matching your search.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -898,6 +1209,156 @@ export default function SupplierManagement() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Notification Toast */}
+        {notifications.length > 0 && (
+          <div className="fixed top-4 right-4 z-50 space-y-2">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 rounded-md shadow-lg border ${
+                  notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                  notification.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
+                  notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
+                  'bg-blue-50 border-blue-200 text-blue-800'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-semibold">{notification.title}</p>
+                    {notification.message && <p className="text-sm mt-1">{notification.message}</p>}
+                  </div>
+                  <button
+                    onClick={() => dismiss(notification.id)}
+                    className="ml-4 text-sm opacity-70 hover:opacity-100"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Edit Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Supplier</DialogTitle>
+              <DialogDescription>Update the supplier information.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-supplier-name">Company Name</Label>
+                <Input
+                  id="edit-supplier-name"
+                  value={newSupplier.name}
+                  onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-supplier-category">Category</Label>
+                <Input
+                  id="edit-supplier-category"
+                  value={newSupplier.category}
+                  onChange={(e) => setNewSupplier({ ...newSupplier, category: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-supplier-tier">Tier</Label>
+                  <Select
+                    value={newSupplier.tier}
+                    onValueChange={(value) => setNewSupplier({ ...newSupplier, tier: value as "Strategic" | "Preferred" | "Tactical" })}
+                  >
+                    <SelectTrigger id="edit-supplier-tier">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Strategic">Strategic</SelectItem>
+                      <SelectItem value="Preferred">Preferred</SelectItem>
+                      <SelectItem value="Tactical">Tactical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-supplier-risk">Risk Level</Label>
+                  <Select
+                    value={newSupplier.riskLevel}
+                    onValueChange={(value) => setNewSupplier({ ...newSupplier, riskLevel: value as "Low" | "Medium" | "High" })}
+                  >
+                    <SelectTrigger id="edit-supplier-risk">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-supplier-location">Location</Label>
+                <Input
+                  id="edit-supplier-location"
+                  value={newSupplier.location}
+                  onChange={(e) => setNewSupplier({ ...newSupplier, location: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-contact-name">Contact Name</Label>
+                  <Input
+                    id="edit-contact-name"
+                    value={newSupplier.contactName}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, contactName: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-contact-phone">Phone</Label>
+                  <Input
+                    id="edit-contact-phone"
+                    value={newSupplier.contactPhone}
+                    onChange={(e) => setNewSupplier({ ...newSupplier, contactPhone: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-contact-email">Email</Label>
+                <Input
+                  id="edit-contact-email"
+                  type="email"
+                  value={newSupplier.contactEmail}
+                  onChange={(e) => setNewSupplier({ ...newSupplier, contactEmail: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
+              <Button onClick={handleEditSupplier}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Supplier</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this supplier? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteSupplier} className="bg-red-600 hover:bg-red-700">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </SidebarInset>
   )
