@@ -565,7 +565,7 @@ export default function ReportingAnalytics() {
           <SidebarTrigger />
           <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
         </div>
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="space-y-4 p-4 md:p-8 pt-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold tracking-tight">Loading dashboard...</h1>
           </div>
@@ -655,7 +655,7 @@ export default function ReportingAnalytics() {
           </Dialog>
         </div>
       </div>
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">{dashboardName}</h1>
