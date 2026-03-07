@@ -560,7 +560,7 @@ export default function ReportingAnalytics() {
   // If not mounted yet, return a loading state that matches the final layout
   if (!mounted) {
     return (
-      </>
+      <>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
           <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>
@@ -575,7 +575,7 @@ export default function ReportingAnalytics() {
   }
 
   return (
-    </>
+    <>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Reports & Analytics</div>

@@ -161,7 +161,7 @@ export default function SourcingContracts() {
   const [searchQuery, setSearchQuery] = useState("")
 
   return (
-    </>
+    <>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Sourcing & Contracts</div>

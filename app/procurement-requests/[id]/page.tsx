@@ -105,7 +105,7 @@ export default function ProcurementRequestDetail() {
 
   if (!request) {
     return (
-      </>
+      <>
         <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
           <SidebarTrigger />
           <Button variant="ghost" size="icon" onClick={() => router.push("/procurement-requests")}>
@@ -150,7 +150,7 @@ export default function ProcurementRequestDetail() {
   }
 
   return (
-    </>
+    <>
       <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
         <SidebarTrigger />
         <Button variant="ghost" size="icon" onClick={() => router.push("/procurement-requests")}>
