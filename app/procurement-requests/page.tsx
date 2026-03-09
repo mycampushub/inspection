@@ -487,6 +487,7 @@ export default function ProcurementRequests() {
         </TableBody>
       </Table>
     </div>
+    </div>
   )
   
   return (
