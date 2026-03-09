@@ -102,7 +102,7 @@ export default function CategoryManagement() {
   const router = useRouter()
   
   // State
-  const [categories, setCategories] = useState<Category[]>(localCategories)
+  const [categories, setCategories] = useState<Category[]>(localCategories())
   const [isLoading, setIsLoading] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<number[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -153,13 +153,13 @@ export default function CategoryManagement() {
   const fetchCategories = () => {
     // Filter local data based on search term
     if (searchTerm) {
-      const filtered = localCategories.filter(cat => 
+      const filtered = localCategories().filter((cat: Category) => 
         cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cat.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
       setCategories(filtered)
     } else {
-      setCategories(localCategories)
+      setCategories(localCategories())
     }
   }
 
@@ -447,8 +447,8 @@ export default function CategoryManagement() {
     router.push(`/sourcing-contracts/contracts?category=${encodeURIComponent(category.name)}`)
   }
 
-  const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(value || 0)
-  const supplierTooltipFormatter = (value: number | undefined) => `${value || 0} suppliers`
+  const currencyTooltipFormatter = (value: any) => formatCurrency(value || 0)
+  const supplierTooltipFormatter = (value: any) => `${value || 0} suppliers`
 
   if (isLoading) {
     return (
@@ -529,7 +529,7 @@ export default function CategoryManagement() {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -623,7 +623,7 @@ export default function CategoryManagement() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
                         {supplierDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -653,7 +653,7 @@ export default function CategoryManagement() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
                         {riskDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={RISK_COLORS[index % RISK_COLORS.length]} />
@@ -1047,7 +1047,7 @@ export default function CategoryManagement() {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"

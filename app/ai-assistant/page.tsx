@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { aiChatHistory } from "@/lib/local-data"
+import { memoryStorage } from "@/lib/memory-storage"
 import { ActivityIcon as Attachment, Bot, Download, Loader2, Mic, MoreHorizontal, Send, User, X } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -38,12 +39,12 @@ interface ConversationHistory {
 }
 
 // Convert aiChatHistory to Message format
-const initialMessages: Message[] = aiChatHistory.length > 0 ? aiChatHistory[0].messages.map(m => ({
-  role: m.role,
+const initialMessages: Message[] = aiChatHistory.map((m) => ({
+  role: m.role as "user" | "assistant",
   content: m.content,
-  timestamp: aiChatHistory[0].createdAt || m.timestamp,
+  timestamp: m.timestamp,
   id: m.id || `${Math.random()}`,
-})) : [];
+}));
 
 export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
@@ -54,24 +55,15 @@ export default function AIAssistant() {
   const [activeTab, setActiveTab] = useState("chat")
   const [attachedFile, setAttachedFile] = useState<File | null>(null)
   const [savedResponses, setSavedResponses] = useState<SavedResponse[]>([])
-  const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>(aiChatHistory.length > 0 ? aiChatHistory.map(chat => ({
-    id: chat.id,
-    title: chat.title,
-    messages: chat.messages.map(m => ({
-      role: m.role,
-      content: m.content,
-      timestamp: chat.createdAt || m.timestamp,
-      id: m.id || `${Math.random()}`,
-    })),
-    timestamp: chat.createdAt,
-  })) : [])
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>([])
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Load saved data from localStorage on mount
+  // Load saved data from memory storage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('ai-assistant-saved')
+    const saved = memoryStorage.getItem('ai-assistant-saved')
     if (saved) {
       try {
         setSavedResponses(JSON.parse(saved))
@@ -102,7 +94,7 @@ export default function AIAssistant() {
           ? [...conversationHistory, currentHistory]
           : conversationHistory.map(h => h.id === 'current' ? currentHistory : h)
         setConversationHistory(newHistory)
-        localStorage.setItem('ai-assistant-history', JSON.stringify(newHistory))
+        memoryStorage.setItem('ai-assistant-history', JSON.stringify(newHistory))
       }
     }
   }, [messages])
@@ -209,7 +201,7 @@ export default function AIAssistant() {
     
     const updatedSaved = [...savedResponses, newSaved]
     setSavedResponses(updatedSaved)
-    localStorage.setItem('ai-assistant-saved', JSON.stringify(updatedSaved))
+    memoryStorage.setItem('ai-assistant-saved', JSON.stringify(updatedSaved))
   }
 
   const handleCopyToClipboard = async (content: string) => {
@@ -248,7 +240,7 @@ export default function AIAssistant() {
   const handleDeleteSavedResponse = (id: string) => {
     const updatedSaved = savedResponses.filter(s => s.id !== id)
     setSavedResponses(updatedSaved)
-    localStorage.setItem('ai-assistant-saved', JSON.stringify(updatedSaved))
+    memoryStorage.setItem('ai-assistant-saved', JSON.stringify(updatedSaved))
   }
 
   const handleLoadConversation = (conversationId: string) => {
@@ -263,7 +255,7 @@ export default function AIAssistant() {
   const handleDeleteConversation = (id: string) => {
     const updatedHistory = conversationHistory.filter(c => c.id !== id)
     setConversationHistory(updatedHistory)
-    localStorage.setItem('ai-assistant-history', JSON.stringify(updatedHistory))
+    memoryStorage.setItem('ai-assistant-history', JSON.stringify(updatedHistory))
     
     if (selectedConversationId === id) {
       setSelectedConversationId(null)

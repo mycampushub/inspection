@@ -113,7 +113,7 @@ function calculateSpendForTimeframe(
 
   // Category trend over time
   const categoryTrend = months.map((month) => {
-    const trendData: Record<string, string | number> = { month };
+    const trendData: { [key: string]: string | number; month: string } = { month };
     categories.slice(0, 5).forEach((cat) => {
       trendData[cat.name] = Math.round((cat.spend / 12) * (0.8 + Math.random() * 0.4));
     });

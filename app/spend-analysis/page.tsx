@@ -45,6 +45,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { memoryStorage } from "@/lib/memory-storage"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d", "#FFC658", "#8DD1E1"]
 
@@ -165,9 +166,9 @@ export default function SpendAnalysis() {
     }
   }
 
-  // Load saved views from localStorage
+  // Load saved views from memory storage
   useEffect(() => {
-    const saved = localStorage.getItem('spendAnalysisViews')
+    const saved = memoryStorage.getItem('spendAnalysisViews')
     if (saved) {
       setSavedViews(JSON.parse(saved))
     }
@@ -215,7 +216,7 @@ export default function SpendAnalysis() {
       }
       const updatedViews = [...savedViews, newView]
       setSavedViews(updatedViews)
-      localStorage.setItem('spendAnalysisViews', JSON.stringify(updatedViews))
+      memoryStorage.setItem('spendAnalysisViews', JSON.stringify(updatedViews))
       setIsSaveViewOpen(false)
       setViewName('')
     }

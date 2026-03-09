@@ -69,6 +69,7 @@ import {
   localCategories,
   spendAnalysisData,
 } from "@/lib/local-data"
+import { memoryStorage } from "@/lib/memory-storage"
 
 // Import the styles directly
 import "./styles.css"
@@ -499,12 +500,9 @@ export default function ReportingAnalytics() {
   const [activeTab, setActiveTab] = useState("all")
   const [dashboardName, setDashboardName] = useState("My Dashboard")
   const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(() => {
-    // Try to load from localStorage if available
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("dashboardWidgets")
-      return saved ? JSON.parse(saved) : defaultDashboard
-    }
-    return defaultDashboard
+    // Try to load from memory storage
+    const saved = memoryStorage.getItem("dashboardWidgets")
+    return saved ? JSON.parse(saved) : defaultDashboard
   })
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -544,8 +542,8 @@ export default function ReportingAnalytics() {
     // Simulate refresh delay
     setTimeout(() => {
       setIsRefreshing(false)
-      // Reload widgets from localStorage
-      const saved = localStorage.getItem("dashboardWidgets")
+      // Reload widgets from memory storage
+      const saved = memoryStorage.getItem("dashboardWidgets")
       if (saved) {
         setDashboardWidgets(JSON.parse(saved))
       }
@@ -554,8 +552,8 @@ export default function ReportingAnalytics() {
 
   // Handle save
   const handleSave = () => {
-    localStorage.setItem("dashboardName", dashboardName)
-    localStorage.setItem("dashboardWidgets", JSON.stringify(dashboardWidgets))
+    memoryStorage.setItem("dashboardName", dashboardName)
+    memoryStorage.setItem("dashboardWidgets", JSON.stringify(dashboardWidgets))
     alert("Dashboard saved successfully!")
   }
 
@@ -579,7 +577,7 @@ export default function ReportingAnalytics() {
   const handleRenameDashboard = () => {
     if (newDashboardName.trim()) {
       setDashboardName(newDashboardName)
-      localStorage.setItem("dashboardName", newDashboardName)
+      memoryStorage.setItem("dashboardName", newDashboardName)
       setIsRenameDialogOpen(false)
       setNewDashboardName("")
     }
@@ -618,8 +616,8 @@ export default function ReportingAnalytics() {
     if (confirm("Are you sure you want to reset to the default dashboard?")) {
       setDashboardWidgets(defaultDashboard)
       setDashboardName("My Dashboard")
-      localStorage.removeItem("dashboardWidgets")
-      localStorage.removeItem("dashboardName")
+      memoryStorage.removeItem("dashboardWidgets")
+      memoryStorage.removeItem("dashboardName")
     }
   }
 

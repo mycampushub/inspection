@@ -95,16 +95,17 @@ export default function Dashboard() {
   const [timeframe, setTimeframe] = useState("year")
   const [showFilters, setShowFilters] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [stats, setStats] = useState({
-    activeContracts: dashboardStats.activeContracts,
-    totalContracts: dashboardStats.activeContracts + 15,
-    totalSuppliers: dashboardStats.totalSuppliers,
-    totalSpend: dashboardStats.totalSpend,
-    suppliersFromUAE: Math.floor(dashboardStats.totalSuppliers * 0.4),
-    icvCertifiedSuppliers: Math.floor(dashboardStats.totalSuppliers * 0.6),
-    isoCertifiedSuppliers: Math.floor(dashboardStats.totalSuppliers * 0.8),
-    upcomingContracts: dashboardStats.expiringContracts,
-    pendingRequests: dashboardStats.pendingRequests,
+  const stats = dashboardStats()
+  const [dashboardState, setDashboardState] = useState({
+    activeContracts: stats.activeContracts,
+    totalContracts: stats.activeContracts + 15,
+    totalSuppliers: stats.totalSuppliers,
+    totalSpend: stats.totalSpend,
+    suppliersFromUAE: Math.floor(stats.totalSuppliers * 0.4),
+    icvCertifiedSuppliers: Math.floor(stats.totalSuppliers * 0.6),
+    isoCertifiedSuppliers: Math.floor(stats.totalSuppliers * 0.8),
+    upcomingContracts: stats.expiringContracts,
+    pendingRequests: stats.pendingRequests,
     activeRfx: 12,
   })
   const [viewDetailsOpen, setViewDetailsOpen] = useState(false)
@@ -520,45 +521,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {stats?.upcomingContracts && stats.upcomingContracts.length > 0 ? (
-                  stats.upcomingContracts.map((contract: any) => {
-                    const daysLeft = Math.ceil(
-                      (new Date(contract.endDate).getTime() - new Date().getTime()) /
-                        (1000 * 60 * 60 * 24)
-                    )
-                    return (
-                      <div
-                        key={contract.id}
-                        className="flex items-center justify-between border-b pb-2 last:border-0"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {contract.supplierName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {contract.category} - {contract.id}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <p className="text-sm font-medium">
-                              {new Intl.NumberFormat("en-US", {
-                                style: "currency",
-                                currency: "USD",
-                                maximumFractionDigits: 0,
-                              }).format(contract.value)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(contract.endDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <Badge variant={daysLeft <= 30 ? "destructive" : "outline"}>
-                            {daysLeft} days
-                          </Badge>
-                        </div>
-                      </div>
-                    )
-                  })
+                {dashboardState?.upcomingContracts && dashboardState.upcomingContracts > 0 ? (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    {dashboardState.upcomingContracts} contracts expiring in the next 60 days
+                  </div>
                 ) : (
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     No contracts expiring soon
