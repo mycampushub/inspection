@@ -147,7 +147,7 @@ export default function RFxManagement() {
   const [addDocumentData, setAddDocumentData] = useState({ name: "", type: "", size: 0 })
 
   // Available categories from local data
-  const categories = localCategories.map(c => c.name)
+  const categories = localCategories().map(c => c.name)
 
   // Filter RFx events locally (no API calls needed)
   useEffect(() => {

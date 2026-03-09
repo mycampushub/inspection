@@ -102,7 +102,7 @@ const topSuppliers = spendAnalysisData.spendBySupplier
   }))
 
 // Calculate contracts by status from local contracts
-const contractsByStatusMap = localContracts.reduce((acc, contract) => {
+const contractsByStatusMap = localContracts().reduce((acc, contract) => {
   acc[contract.status] = (acc[contract.status] || 0) + 1
   return acc
 }, {} as Record<string, number>)

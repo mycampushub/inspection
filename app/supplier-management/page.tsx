@@ -194,7 +194,7 @@ const suppliersByLocation = [
 
 export default function SupplierManagement() {
   const [selectedTab, setSelectedTab] = useState("overview")
-  const [suppliers, setSuppliers] = useState<SupplierCard[]>(localSuppliers.map((s) => ({
+  const [suppliers, setSuppliers] = useState<SupplierCard[]>(localSuppliers().map((s) => ({
     id: s.id,
     name: s.name,
     logo: "",
@@ -261,7 +261,7 @@ export default function SupplierManagement() {
   const fetchSuppliers = () => {
     setLoading(true)
     try {
-      let filtered = localSuppliers.map((s) => ({
+      let filtered = localSuppliers().map((s) => ({
         id: s.id,
         name: s.name,
         logo: "",

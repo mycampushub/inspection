@@ -38,12 +38,12 @@ interface ConversationHistory {
 }
 
 // Convert aiChatHistory to Message format
-const initialMessages: Message[] = aiChatHistory[0].messages.map(m => ({
+const initialMessages: Message[] = aiChatHistory.length > 0 ? aiChatHistory[0].messages.map(m => ({
   role: m.role,
   content: m.content,
-  timestamp: aiChatHistory[0].createdAt,
-  id: `${aiChatHistory[0].id}-${Math.random()}`,
-}))
+  timestamp: aiChatHistory[0].createdAt || m.timestamp,
+  id: m.id || `${Math.random()}`,
+})) : [];
 
 export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
@@ -54,18 +54,17 @@ export default function AIAssistant() {
   const [activeTab, setActiveTab] = useState("chat")
   const [attachedFile, setAttachedFile] = useState<File | null>(null)
   const [savedResponses, setSavedResponses] = useState<SavedResponse[]>([])
-  const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>(aiChatHistory.map(chat => ({
+  const [conversationHistory, setConversationHistory] = useState<ConversationHistory[]>(aiChatHistory.length > 0 ? aiChatHistory.map(chat => ({
     id: chat.id,
     title: chat.title,
     messages: chat.messages.map(m => ({
       role: m.role,
       content: m.content,
-      timestamp: chat.createdAt,
-      id: `${chat.id}-${Math.random()}`,
+      timestamp: chat.createdAt || m.timestamp,
+      id: m.id || `${Math.random()}`,
     })),
     timestamp: chat.createdAt,
-  })))
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(aiChatHistory[0].id)
+  })) : [])
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
