@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   Clock,
   Download,
   Filter,
+  Mail,
   MoreHorizontal,
   Plus,
   RefreshCw,
@@ -19,12 +20,35 @@ import {
   Star,
   ThumbsUp,
   Truck,
+  Eye,
+  Pencil,
+  Trash2,
+  AlertCircle,
+  FileText,
 } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   DropdownMenu,
@@ -34,257 +58,317 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { localEvaluations, localSuppliers } from "@/lib/local-data"
+import type { Evaluation, Supplier } from "@/lib/local-data"
 
-// Sample data for suppliers
-const suppliers = [
-  {
-    id: "SUP-001",
-    name: "Tech Solutions Inc.",
-    logo: "/abstract-geometric-ts.png",
-    category: "IT Services",
-    status: "Approved",
-    tier: "Strategic",
-    location: "New York, USA",
-    contactName: "John Smith",
-    contactEmail: "john.smith@techsolutions.com",
-    contactPhone: "+1 (555) 123-4567",
-    performanceScore: 92,
-    riskLevel: "Low",
-    activeContracts: 3,
-    totalSpend: 1250000,
-    onTimeDelivery: 98,
-    qualityScore: 95,
-    responseTime: 24,
-    certifications: ["ISO 9001", "ISO 27001", "SOC 2"],
-    performanceHistory: [
-      { period: "Q1 2023", score: 91, onTimeDelivery: 97, quality: 94, responseTime: 26 },
-      { period: "Q2 2023", score: 89, onTimeDelivery: 95, quality: 92, responseTime: 28 },
-      { period: "Q3 2023", score: 90, onTimeDelivery: 96, quality: 93, responseTime: 25 },
-      { period: "Q4 2023", score: 92, onTimeDelivery: 98, quality: 95, responseTime: 24 },
-    ],
-    performanceIssues: [
-      {
-        id: "ISS-001",
-        date: "2023-08-15",
-        type: "Delivery Delay",
-        description: "One-day delay in server equipment delivery",
-        status: "Resolved",
-        resolution: "Supplier provided expedited shipping for subsequent orders",
-      },
-    ],
-  },
-  {
-    id: "SUP-002",
-    name: "Office Depot",
-    logo: "/stylized-letters-OD.png",
-    category: "Office Supplies",
-    status: "Approved",
-    tier: "Preferred",
-    location: "Chicago, USA",
-    contactName: "Sarah Johnson",
-    contactEmail: "sarah.j@officedepot.com",
-    contactPhone: "+1 (555) 234-5678",
-    performanceScore: 88,
-    riskLevel: "Low",
-    activeContracts: 1,
-    totalSpend: 75000,
-    onTimeDelivery: 92,
-    qualityScore: 90,
-    responseTime: 48,
-    certifications: ["ISO 9001", "Green Business Certified"],
-    performanceHistory: [
-      { period: "Q1 2023", score: 87, onTimeDelivery: 91, quality: 89, responseTime: 50 },
-      { period: "Q2 2023", score: 86, onTimeDelivery: 90, quality: 88, responseTime: 52 },
-      { period: "Q3 2023", score: 89, onTimeDelivery: 93, quality: 91, responseTime: 46 },
-      { period: "Q4 2023", score: 88, onTimeDelivery: 92, quality: 90, responseTime: 48 },
-    ],
-    performanceIssues: [
-      {
-        id: "ISS-002",
-        date: "2023-09-10",
-        type: "Quality Issue",
-        description: "Received damaged office chairs in shipment",
-        status: "Resolved",
-        resolution: "Supplier replaced damaged items and provided 10% discount",
-      },
-    ],
-  },
-  {
-    id: "SUP-003",
-    name: "Global Logistics Partners",
-    logo: "/glowing-landscape.png",
-    category: "Logistics",
-    status: "Approved",
-    tier: "Strategic",
-    location: "Singapore",
-    contactName: "Michael Chen",
-    contactEmail: "m.chen@globallogistics.com",
-    contactPhone: "+65 9876 5432",
-    performanceScore: 85,
-    riskLevel: "Medium",
-    activeContracts: 2,
-    totalSpend: 950000,
-    onTimeDelivery: 87,
-    qualityScore: 88,
-    responseTime: 36,
-    certifications: ["ISO 9001", "C-TPAT", "IATA"],
-    performanceHistory: [
-      { period: "Q1 2023", score: 83, onTimeDelivery: 85, quality: 86, responseTime: 40 },
-      { period: "Q2 2023", score: 84, onTimeDelivery: 86, quality: 87, responseTime: 38 },
-      { period: "Q3 2023", score: 86, onTimeDelivery: 88, quality: 89, responseTime: 34 },
-      { period: "Q4 2023", score: 85, onTimeDelivery: 87, quality: 88, responseTime: 36 },
-    ],
-    performanceIssues: [
-      {
-        id: "ISS-003",
-        date: "2023-10-05",
-        type: "Communication Issue",
-        description: "Delayed response to urgent shipment inquiry",
-        status: "Resolved",
-        resolution: "Supplier assigned dedicated account manager for urgent matters",
-      },
-      {
-        id: "ISS-004",
-        date: "2023-11-20",
-        type: "Delivery Delay",
-        description: "Three-day delay in international shipment",
-        status: "Resolved",
-        resolution: "Supplier provided partial refund for shipping costs",
-      },
-    ],
-  },
-  {
-    id: "SUP-004",
-    name: "Marketing Experts Ltd.",
-    logo: "/abstract-self-representation.png",
-    category: "Marketing Services",
-    status: "Approved",
-    tier: "Preferred",
-    location: "London, UK",
-    contactName: "Jessica Williams",
-    contactEmail: "j.williams@marketingexperts.com",
-    contactPhone: "+44 20 1234 5678",
-    performanceScore: 90,
-    riskLevel: "Low",
-    activeContracts: 1,
-    totalSpend: 520000,
-    onTimeDelivery: 95,
-    qualityScore: 92,
-    responseTime: 24,
-    certifications: ["ISO 9001"],
-    performanceHistory: [
-      { period: "Q1 2023", score: 88, onTimeDelivery: 93, quality: 90, responseTime: 28 },
-      { period: "Q2 2023", score: 89, onTimeDelivery: 94, quality: 91, responseTime: 26 },
-      { period: "Q3 2023", score: 91, onTimeDelivery: 96, quality: 93, responseTime: 22 },
-      { period: "Q4 2023", score: 90, onTimeDelivery: 95, quality: 92, responseTime: 24 },
-    ],
-    performanceIssues: [],
-  },
-  {
-    id: "SUP-005",
-    name: "Manufacturing Solutions Co.",
-    logo: "/abstract-ms-artwork.png",
-    category: "Manufacturing",
-    status: "Under Review",
-    tier: "Tactical",
-    location: "Detroit, USA",
-    contactName: "Robert Taylor",
-    contactEmail: "r.taylor@manufacturingsolutions.com",
-    contactPhone: "+1 (555) 345-6789",
-    performanceScore: 78,
-    riskLevel: "Medium",
-    activeContracts: 1,
-    totalSpend: 650000,
-    onTimeDelivery: 82,
-    qualityScore: 85,
-    responseTime: 48,
-    certifications: ["ISO 9001", "ISO 14001"],
-    performanceHistory: [
-      { period: "Q1 2023", score: 75, onTimeDelivery: 79, quality: 82, responseTime: 52 },
-      { period: "Q2 2023", score: 76, onTimeDelivery: 80, quality: 83, responseTime: 50 },
-      { period: "Q3 2023", score: 79, onTimeDelivery: 83, quality: 86, responseTime: 46 },
-      { period: "Q4 2023", score: 78, onTimeDelivery: 82, quality: 85, responseTime: 48 },
-    ],
-    performanceIssues: [
-      {
-        id: "ISS-005",
-        date: "2023-07-12",
-        type: "Quality Issue",
-        description: "Components failed quality testing at higher than acceptable rate",
-        status: "In Progress",
-        resolution: "Supplier implementing improved quality control measures",
-      },
-      {
-        id: "ISS-006",
-        date: "2023-09-25",
-        type: "Delivery Delay",
-        description: "Recurring delays in weekly component deliveries",
-        status: "In Progress",
-        resolution: "Working with supplier on improved production scheduling",
-      },
-    ],
-  },
-  {
-    id: "SUP-006",
-    name: "Professional Services Group",
-    logo: "/playstation-controller.png",
-    category: "Consulting",
-    status: "Approved",
-    tier: "Strategic",
-    location: "Boston, USA",
-    contactName: "Amanda Rodriguez",
-    contactEmail: "a.rodriguez@psgroup.com",
-    contactPhone: "+1 (555) 456-7890",
-    performanceScore: 94,
-    riskLevel: "Low",
-    activeContracts: 2,
-    totalSpend: 780000,
-    onTimeDelivery: 97,
-    qualityScore: 96,
-    responseTime: 12,
-    certifications: ["ISO 9001", "ISO 27001"],
-    performanceHistory: [
-      { period: "Q1 2023", score: 93, onTimeDelivery: 96, quality: 95, responseTime: 14 },
-      { period: "Q2 2023", score: 94, onTimeDelivery: 97, quality: 96, responseTime: 13 },
-      { period: "Q3 2023", score: 94, onTimeDelivery: 97, quality: 96, responseTime: 12 },
-      { period: "Q4 2023", score: 94, onTimeDelivery: 97, quality: 96, responseTime: 12 },
-    ],
-    performanceIssues: [],
-  },
-]
+interface PerformanceEvaluation {
+  id: string
+  supplierId: string
+  supplierName: string
+  category: string
+  evaluationDate: string
+  evaluatedBy: string
+  overallScore: number
+  qualityScore: number
+  deliveryScore: number
+  costScore: number
+  serviceScore: number
+  complianceScore: number
+  innovationScore: number
+  status: "Draft" | "Submitted" | "Approved"
+  comments?: string
+  issues?: PerformanceIssue[]
+  recommendations?: string[]
+}
+
+interface PerformanceIssue {
+  id: string
+  type: string
+  description: string
+  severity: "Low" | "Medium" | "High"
+  date: string
+  resolved: boolean
+}
 
 export default function SupplierPerformance() {
+  // Convert local Evaluation to PerformanceEvaluation format
+  const initialEvaluations: PerformanceEvaluation[] = localEvaluations.map((eval) => ({
+    id: eval.id,
+    supplierId: eval.supplierId,
+    supplierName: eval.supplierName,
+    category: eval.category,
+    evaluationDate: eval.evaluatedAt.split("T")[0],
+    evaluatedBy: eval.evaluatedBy,
+    overallScore: eval.overallScore,
+    qualityScore: eval.qualityOfGoods,
+    deliveryScore: eval.onTimeDelivery,
+    costScore: eval.pricing,
+    serviceScore: eval.customerService,
+    complianceScore: eval.compliance,
+    innovationScore: 80, // Default value
+    status: eval.status === "Completed" ? "Approved" : eval.status === "In Progress" ? "Submitted" : "Draft",
+    comments: eval.comments[0]?.text || "",
+    issues: eval.issues.map((issue) => ({
+      id: `ISS-${issue.id}`,
+      type: issue.title,
+      description: issue.description,
+      severity: issue.severity === "Critical" || issue.severity === "High" ? "High" : issue.severity,
+      date: issue.reportedDate,
+      resolved: issue.status === "Resolved",
+    })),
+  }))
+
+  const [evaluations, setEvaluations] = useState<PerformanceEvaluation[]>(initialEvaluations)
+  const [suppliers, setSuppliers] = useState<Supplier[]>(localSuppliers)
+  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [expandedSupplier, setExpandedSupplier] = useState<string | null>(null)
+  const [expandedEvaluation, setExpandedEvaluation] = useState<string | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState("quarter")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedPerformance, setSelectedPerformance] = useState("all")
+  const [selectedStatus, setSelectedStatus] = useState("all")
+  const [showFilters, setShowFilters] = useState(false)
+  const [activeTab, setActiveTab] = useState("performance")
 
-  const toggleSupplierExpansion = (id: string) => {
-    setExpandedSupplier(expandedSupplier === id ? null : id)
+  // Dialog states
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false)
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false)
+  const [selectedEvaluation, setSelectedEvaluation] = useState<PerformanceEvaluation | null>(null)
+
+  // Form states
+  const [formData, setFormData] = useState<Partial<PerformanceEvaluation>>({
+    overallScore: 80,
+    qualityScore: 80,
+    deliveryScore: 80,
+    costScore: 80,
+    serviceScore: 80,
+    complianceScore: 80,
+    innovationScore: 80,
+    status: "Draft",
+  })
+  const [issueForm, setIssueForm] = useState<Partial<PerformanceIssue>>({
+    type: "Quality Issue",
+    severity: "Medium",
+    resolved: false,
+  })
+  const [contactForm, setContactForm] = useState({ subject: "", message: "" })
+
+  // Fetch evaluations locally (no-op, data is already loaded)
+  const fetchEvaluations = () => {
+    setLoading(true)
+    // Data is already loaded locally, just simulate loading
+    setTimeout(() => {
+      setLoading(false)
+    }, 100)
   }
 
-  // Filter suppliers based on search and filters
-  const filteredSuppliers = suppliers.filter((supplier) => {
-    const matchesSearch =
-      supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      supplier.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      supplier.category.toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch suppliers locally (no-op, data is already loaded)
+  const fetchSuppliers = () => {
+    // Data is already loaded locally
+  }
 
-    const matchesCategory = selectedCategory === "all" || supplier.category.toLowerCase() === selectedCategory
+  // Create evaluation
+  const handleCreateEvaluation = () => {
+    if (!formData.supplierId || !formData.evaluatedBy) {
+      alert("Please select a supplier and provide the evaluator name.")
+      return
+    }
+    const supplier = suppliers.find((s) => s.id === formData.supplierId)
+    const newEvaluation: PerformanceEvaluation = {
+      id: `EVAL-${String(evaluations.length + 1).padStart(5, '0')}`,
+      supplierId: formData.supplierId!,
+      supplierName: supplier?.name || "",
+      category: supplier?.category || "",
+      evaluationDate: new Date().toISOString().split("T")[0],
+      evaluatedBy: formData.evaluatedBy!,
+      overallScore: formData.overallScore || 80,
+      qualityScore: formData.qualityScore || 80,
+      deliveryScore: formData.deliveryScore || 80,
+      costScore: formData.costScore || 80,
+      serviceScore: formData.serviceScore || 80,
+      complianceScore: formData.complianceScore || 80,
+      innovationScore: formData.innovationScore || 80,
+      status: formData.status || "Draft",
+      comments: formData.comments,
+      issues: [],
+      recommendations: [],
+    }
+    setEvaluations([...evaluations, newEvaluation])
+    setIsCreateDialogOpen(false)
+    setFormData({
+      overallScore: 80,
+      qualityScore: 80,
+      deliveryScore: 80,
+      costScore: 80,
+      serviceScore: 80,
+      complianceScore: 80,
+      innovationScore: 80,
+      status: "Draft",
+    })
+  }
+
+  // Update evaluation
+  const handleUpdateEvaluation = () => {
+    if (!selectedEvaluation) return
+    setEvaluations(evaluations.map((e) => e.id === selectedEvaluation.id ? { ...e, ...formData } : e))
+    setIsEditDialogOpen(false)
+    setFormData({})
+    setSelectedEvaluation(null)
+  }
+
+  // Delete evaluation
+  const handleDeleteEvaluation = () => {
+    if (!selectedEvaluation) return
+    setEvaluations(evaluations.filter((e) => e.id !== selectedEvaluation.id))
+    setIsDeleteDialogOpen(false)
+    setSelectedEvaluation(null)
+  }
+
+  // Add issue to evaluation
+  const handleAddIssue = () => {
+    if (!selectedEvaluation || !issueForm.type || !issueForm.description) {
+      alert("Please fill in all required fields.")
+      return
+    }
+    const newIssue: PerformanceIssue = {
+      id: `ISS-${Date.now()}`,
+      type: issueForm.type!,
+      description: issueForm.description!,
+      severity: issueForm.severity!,
+      date: new Date().toISOString().split("T")[0],
+      resolved: issueForm.resolved || false,
+    }
+    const updatedIssues = [...(selectedEvaluation.issues || []), newIssue]
+    handleUpdateIssues(updatedIssues)
+    setIsIssueDialogOpen(false)
+    setIssueForm({ type: "Quality Issue", severity: "Medium", resolved: false })
+  }
+
+  // Update issues for evaluation
+  const handleUpdateIssues = (issues: PerformanceIssue[]) => {
+    if (!selectedEvaluation) return
+    setSelectedEvaluation({ ...selectedEvaluation, issues })
+    setEvaluations(evaluations.map((e) => e.id === selectedEvaluation.id ? { ...e, issues } : e))
+  }
+
+  // Contact supplier
+  const handleContactSupplier = () => {
+    const supplier = suppliers.find((s) => s.id === selectedEvaluation?.supplierId)
+    alert(`Message sent to ${supplier?.contactPerson} (${supplier?.email})\nSubject: ${contactForm.subject}\nMessage: ${contactForm.message}`)
+    setIsContactDialogOpen(false)
+    setContactForm({ subject: "", message: "" })
+  }
+
+  // Export report
+  const handleExportReport = (evaluation: PerformanceEvaluation) => {
+    const data = JSON.stringify(evaluation, null, 2)
+    const blob = new Blob([data], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `evaluation-${evaluation.id}-${evaluation.supplierName.replace(/\s+/g, "-").toLowerCase()}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // Schedule review
+  const handleScheduleReview = (evaluation: PerformanceEvaluation) => {
+    alert(`Review scheduled for ${evaluation.supplierName}\nEvaluation ID: ${evaluation.id}\nNext review date will be set by the system.`)
+  }
+
+  const toggleEvaluationExpansion = (id: string) => {
+    setExpandedEvaluation(expandedEvaluation === id ? null : id)
+  }
+
+  const openEditDialog = (evaluation: PerformanceEvaluation) => {
+    setSelectedEvaluation(evaluation)
+    setFormData({ ...evaluation })
+    setIsEditDialogOpen(true)
+  }
+
+  const openViewDialog = (evaluation: PerformanceEvaluation) => {
+    setSelectedEvaluation(evaluation)
+    setIsViewDialogOpen(true)
+  }
+
+  const openDeleteDialog = (evaluation: PerformanceEvaluation) => {
+    setSelectedEvaluation(evaluation)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const openIssueDialog = (evaluation: PerformanceEvaluation) => {
+    setSelectedEvaluation(evaluation)
+    setIsIssueDialogOpen(true)
+  }
+
+  const openContactDialog = (evaluation: PerformanceEvaluation) => {
+    setSelectedEvaluation(evaluation)
+    setIsContactDialogOpen(true)
+  }
+
+  // Initial fetch (data is already loaded)
+  useEffect(() => {
+    // Data is already loaded from local data
+  }, [])
+
+  // Filter updates are handled by the filteredEvaluations variable
+
+  // Filter evaluations based on search and filters
+  const filteredEvaluations = evaluations.filter((evaluation) => {
+    const matchesSearch =
+      evaluation.supplierName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      evaluation.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      evaluation.category.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesCategory = selectedCategory === "all" || evaluation.category.toLowerCase() === selectedCategory
+    const matchesStatus = selectedStatus === "all" || evaluation.status === selectedStatus
     const matchesPerformance =
       selectedPerformance === "all" ||
-      (selectedPerformance === "excellent" && supplier.performanceScore >= 90) ||
-      (selectedPerformance === "good" && supplier.performanceScore >= 80 && supplier.performanceScore < 90) ||
-      (selectedPerformance === "average" && supplier.performanceScore >= 70 && supplier.performanceScore < 80) ||
-      (selectedPerformance === "poor" && supplier.performanceScore < 70)
+      (selectedPerformance === "excellent" && evaluation.overallScore >= 90) ||
+      (selectedPerformance === "good" && evaluation.overallScore >= 80 && evaluation.overallScore < 90) ||
+      (selectedPerformance === "average" && evaluation.overallScore >= 70 && evaluation.overallScore < 80) ||
+      (selectedPerformance === "poor" && evaluation.overallScore < 70)
 
-    return matchesSearch && matchesCategory && matchesPerformance
+    return matchesSearch && matchesCategory && matchesStatus && matchesPerformance
   })
+
+  // Get unique categories
+  const categories = Array.from(new Set(evaluations.map((e) => e.category)))
+
+  // Calculate aggregate metrics
+  const averageScore = filteredEvaluations.length > 0
+    ? Math.round(filteredEvaluations.reduce((acc, e) => acc + e.overallScore, 0) / filteredEvaluations.length)
+    : 0
+
+  const averageDelivery = filteredEvaluations.length > 0
+    ? Math.round(filteredEvaluations.reduce((acc, e) => acc + e.deliveryScore, 0) / filteredEvaluations.length)
+    : 0
+
+  const averageQuality = filteredEvaluations.length > 0
+    ? Math.round(filteredEvaluations.reduce((acc, e) => acc + e.qualityScore, 0) / filteredEvaluations.length)
+    : 0
+
+  const averageService = filteredEvaluations.length > 0
+    ? Math.round(filteredEvaluations.reduce((acc, e) => acc + e.serviceScore, 0) / filteredEvaluations.length)
+    : 0
 
   return (
     <SidebarInset>
@@ -298,15 +382,15 @@ export default function SupplierPerformance() {
         </Button>
         <div className="flex items-center text-lg font-semibold">Supplier Performance</div>
         <div className="ml-auto flex items-center gap-4">
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={fetchEvaluations}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
-          <Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Evaluation
           </Button>
@@ -317,55 +401,63 @@ export default function SupplierPerformance() {
           <div className="flex items-center gap-2 w-full max-w-sm">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search suppliers..."
+              placeholder="Search evaluations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-9"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Time period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="month">Last Month</SelectItem>
-                <SelectItem value="quarter">Last Quarter</SelectItem>
-                <SelectItem value="year">Last Year</SelectItem>
-                <SelectItem value="ytd">Year to Date</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="it services">IT Services</SelectItem>
-                <SelectItem value="office supplies">Office Supplies</SelectItem>
-                <SelectItem value="logistics">Logistics</SelectItem>
-                <SelectItem value="marketing services">Marketing Services</SelectItem>
-                <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                <SelectItem value="consulting">Consulting</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedPerformance} onValueChange={setSelectedPerformance}>
-              <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Performance level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="excellent">Excellent (90%+)</SelectItem>
-                <SelectItem value="good">Good (80-89%)</SelectItem>
-                <SelectItem value="average">Average (70-79%)</SelectItem>
-                <SelectItem value="poor">Poor (Below 70%)</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" className="h-9">
-              <BarChart3 className="mr-2 h-4 w-4" />
-              View Reports
-            </Button>
-          </div>
+          {showFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <SelectValue placeholder="Time period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="month">Last Month</SelectItem>
+                  <SelectItem value="quarter">Last Quarter</SelectItem>
+                  <SelectItem value="year">Last Year</SelectItem>
+                  <SelectItem value="ytd">Year to Date</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat.toLowerCase()}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Submitted">Submitted</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedPerformance} onValueChange={setSelectedPerformance}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <SelectValue placeholder="Performance level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="excellent">Excellent (90%+)</SelectItem>
+                  <SelectItem value="good">Good (80-89%)</SelectItem>
+                  <SelectItem value="average">Average (70-79%)</SelectItem>
+                  <SelectItem value="poor">Poor (Below 70%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -375,17 +467,11 @@ export default function SupplierPerformance() {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {Math.round(
-                  filteredSuppliers.reduce((acc, supplier) => acc + supplier.performanceScore, 0) /
-                    filteredSuppliers.length,
-                )}
-                %
-              </div>
+              <div className="text-2xl font-bold">{averageScore}%</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <Check className="mr-1 h-3 w-3" />
-                  +2% from last quarter
+                  Based on {filteredEvaluations.length} evaluations
                 </span>
               </p>
             </CardContent>
@@ -396,17 +482,11 @@ export default function SupplierPerformance() {
               <Truck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {Math.round(
-                  filteredSuppliers.reduce((acc, supplier) => acc + supplier.onTimeDelivery, 0) /
-                    filteredSuppliers.length,
-                )}
-                %
-              </div>
+              <div className="text-2xl font-bold">{averageDelivery}%</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <Check className="mr-1 h-3 w-3" />
-                  +1% from last quarter
+                  Across all suppliers
                 </span>
               </p>
             </CardContent>
@@ -417,45 +497,33 @@ export default function SupplierPerformance() {
               <Check className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {Math.round(
-                  filteredSuppliers.reduce((acc, supplier) => acc + supplier.qualityScore, 0) /
-                    filteredSuppliers.length,
-                )}
-                %
-              </div>
+              <div className="text-2xl font-bold">{averageQuality}%</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <Check className="mr-1 h-3 w-3" />
-                  +3% from last quarter
+                  Quality assurance metric
                 </span>
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Response Time</CardTitle>
+              <CardTitle className="text-sm font-medium">Service Score</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {Math.round(
-                  filteredSuppliers.reduce((acc, supplier) => acc + supplier.responseTime, 0) /
-                    filteredSuppliers.length,
-                )}
-                h
-              </div>
+              <div className="text-2xl font-bold">{averageService}%</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <Check className="mr-1 h-3 w-3" />
-                  -2h from last quarter
+                  Customer service rating
                 </span>
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="performance">
+        <Tabs defaultValue="performance" onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
             <TabsTrigger value="issues">Performance Issues</TabsTrigger>
@@ -463,312 +531,300 @@ export default function SupplierPerformance() {
           </TabsList>
 
           <TabsContent value="performance" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              {filteredSuppliers.map((supplier) => (
-                <Collapsible
-                  key={supplier.id}
-                  open={expandedSupplier === supplier.id}
-                  onOpenChange={() => toggleSupplierExpansion(supplier.id)}
-                >
-                  <Card>
-                    <CardHeader className="p-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between">
-                        <div className="flex items-start gap-4">
-                          <Avatar className="h-12 w-12 border">
-                            <AvatarImage src={supplier.logo || "/placeholder.svg"} alt={supplier.name} />
-                            <AvatarFallback>{supplier.name.substring(0, 2)}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm" className="p-0 h-6 w-6">
-                                  <ChevronDown className="h-4 w-4" />
-                                  <span className="sr-only">Toggle</span>
-                                </Button>
-                              </CollapsibleTrigger>
-                              <h3 className="font-semibold">{supplier.name}</h3>
-                              <Badge variant="outline">{supplier.id}</Badge>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                              <Badge
-                                variant={
-                                  supplier.status === "Approved"
-                                    ? "success"
-                                    : supplier.status === "Under Review"
-                                      ? "warning"
-                                      : "outline"
-                                }
-                              >
-                                {supplier.status}
-                              </Badge>
-                              <span>•</span>
-                              <span>{supplier.category}</span>
-                              <span>•</span>
-                              <span>{supplier.tier} Tier</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6 mt-4 md:mt-0">
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs text-muted-foreground">Overall Score</span>
-                            <div
-                              className={`flex h-12 w-12 items-center justify-center rounded-full ${
-                                supplier.performanceScore >= 90
-                                  ? "bg-green-100 text-green-700"
-                                  : supplier.performanceScore >= 80
-                                    ? "bg-amber-100 text-amber-700"
-                                    : "bg-red-100 text-red-700"
-                              }`}
-                            >
-                              <span className="text-sm font-medium">{supplier.performanceScore}%</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs text-muted-foreground">Trend</span>
-                            <div className="flex items-center gap-1">
-                              {supplier.performanceHistory[3].score > supplier.performanceHistory[0].score ? (
-                                <ThumbsUp className="h-4 w-4 text-green-500" />
-                              ) : supplier.performanceHistory[3].score < supplier.performanceHistory[0].score ? (
-                                <ThumbsUp className="h-4 w-4 text-red-500 rotate-180" />
-                              ) : (
-                                <Clock className="h-4 w-4 text-amber-500" />
-                              )}
-                              <span
-                                className={
-                                  supplier.performanceHistory[3].score > supplier.performanceHistory[0].score
-                                    ? "text-green-500 text-sm"
-                                    : supplier.performanceHistory[3].score < supplier.performanceHistory[0].score
-                                      ? "text-red-500 text-sm"
-                                      : "text-amber-500 text-sm"
-                                }
-                              >
-                                {supplier.performanceHistory[3].score > supplier.performanceHistory[0].score
-                                  ? "Improving"
-                                  : supplier.performanceHistory[3].score < supplier.performanceHistory[0].score
-                                    ? "Declining"
-                                    : "Stable"}
-                              </span>
-                            </div>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Full Performance</DropdownMenuItem>
-                              <DropdownMenuItem>Create Evaluation</DropdownMenuItem>
-                              <DropdownMenuItem>Export Report</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem>View Supplier Profile</DropdownMenuItem>
-                              <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CollapsibleContent>
-                      <CardContent className="px-4 pb-4 pt-0 border-t">
-                        <div className="grid gap-6 md:grid-cols-3 mt-4">
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-medium">Delivery Performance</h4>
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm">On-Time Delivery</span>
-                                <span
-                                  className={`text-sm font-medium ${
-                                    supplier.onTimeDelivery >= 90
-                                      ? "text-green-600"
-                                      : supplier.onTimeDelivery >= 80
-                                        ? "text-amber-600"
-                                        : "text-red-600"
-                                  }`}
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredEvaluations.map((evaluation) => (
+                  <Collapsible
+                    key={evaluation.id}
+                    open={expandedEvaluation === evaluation.id}
+                    onOpenChange={() => toggleEvaluationExpansion(evaluation.id)}
+                  >
+                    <Card>
+                      <CardHeader className="p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between">
+                          <div className="flex items-start gap-4">
+                            <Avatar className="h-12 w-12 border">
+                              <AvatarFallback>{evaluation.supplierName.substring(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="p-0 h-6 w-6">
+                                    <ChevronDown className="h-4 w-4" />
+                                    <span className="sr-only">Toggle</span>
+                                  </Button>
+                                </CollapsibleTrigger>
+                                <h3 className="font-semibold">{evaluation.supplierName}</h3>
+                                <Badge variant="outline">{evaluation.id}</Badge>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                <Badge
+                                  variant={
+                                    evaluation.status === "Approved"
+                                      ? "success"
+                                      : evaluation.status === "Submitted"
+                                        ? "warning"
+                                        : "outline"
+                                  }
                                 >
-                                  {supplier.onTimeDelivery}%
-                                </span>
-                              </div>
-                              <Progress
-                                value={supplier.onTimeDelivery}
-                                className={`h-2 ${
-                                  supplier.onTimeDelivery >= 90
-                                    ? "bg-green-100"
-                                    : supplier.onTimeDelivery >= 80
-                                      ? "bg-amber-100"
-                                      : "bg-red-100"
-                                }`}
-                              />
-                              <div className="flex items-center gap-1">
-                                <Truck className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Delivery Performance</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q1 2023:</span>
-                                <span>{supplier.performanceHistory[0].onTimeDelivery}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q2 2023:</span>
-                                <span>{supplier.performanceHistory[1].onTimeDelivery}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q3 2023:</span>
-                                <span>{supplier.performanceHistory[2].onTimeDelivery}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q4 2023:</span>
-                                <span>{supplier.performanceHistory[3].onTimeDelivery}%</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-medium">Quality Performance</h4>
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm">Quality Score</span>
-                                <span
-                                  className={`text-sm font-medium ${
-                                    supplier.qualityScore >= 90
-                                      ? "text-green-600"
-                                      : supplier.qualityScore >= 80
-                                        ? "text-amber-600"
-                                        : "text-red-600"
-                                  }`}
-                                >
-                                  {supplier.qualityScore}%
-                                </span>
-                              </div>
-                              <Progress
-                                value={supplier.qualityScore}
-                                className={`h-2 ${
-                                  supplier.qualityScore >= 90
-                                    ? "bg-green-100"
-                                    : supplier.qualityScore >= 80
-                                      ? "bg-amber-100"
-                                      : "bg-red-100"
-                                }`}
-                              />
-                              <div className="flex items-center gap-1">
-                                <Check className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Product/Service Quality</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q1 2023:</span>
-                                <span>{supplier.performanceHistory[0].quality}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q2 2023:</span>
-                                <span>{supplier.performanceHistory[1].quality}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q3 2023:</span>
-                                <span>{supplier.performanceHistory[2].quality}%</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q4 2023:</span>
-                                <span>{supplier.performanceHistory[3].quality}%</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-medium">Responsiveness</h4>
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm">Response Time</span>
-                                <span
-                                  className={`text-sm font-medium ${
-                                    supplier.responseTime <= 24
-                                      ? "text-green-600"
-                                      : supplier.responseTime <= 48
-                                        ? "text-amber-600"
-                                        : "text-red-600"
-                                  }`}
-                                >
-                                  {supplier.responseTime}h
-                                </span>
-                              </div>
-                              <Progress
-                                value={100 - (supplier.responseTime / 72) * 100}
-                                className={`h-2 ${
-                                  supplier.responseTime <= 24
-                                    ? "bg-green-100"
-                                    : supplier.responseTime <= 48
-                                      ? "bg-amber-100"
-                                      : "bg-red-100"
-                                }`}
-                              />
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Communication Responsiveness</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q1 2023:</span>
-                                <span>{supplier.performanceHistory[0].responseTime}h</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q2 2023:</span>
-                                <span>{supplier.performanceHistory[1].responseTime}h</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q3 2023:</span>
-                                <span>{supplier.performanceHistory[2].responseTime}h</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Q4 2023:</span>
-                                <span>{supplier.performanceHistory[3].responseTime}h</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center mt-6">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-medium">Certifications</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {supplier.certifications.map((cert, index) => (
-                                <Badge key={index} variant="outline" className="flex items-center gap-1">
-                                  <Shield className="h-3 w-3" />
-                                  {cert}
+                                  {evaluation.status}
                                 </Badge>
-                              ))}
+                                <span>•</span>
+                                <span>{evaluation.category}</span>
+                                <span>•</span>
+                                <span>{new Date(evaluation.evaluationDate).toLocaleDateString()}</span>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Calendar className="mr-2 h-4 w-4" />
-                              Schedule Review
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Download className="mr-2 h-4 w-4" />
-                              Export Report
-                            </Button>
+                          <div className="flex items-center gap-6 mt-4 md:mt-0">
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground">Overall Score</span>
+                              <div
+                                className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                                  evaluation.overallScore >= 90
+                                    ? "bg-green-100 text-green-700"
+                                    : evaluation.overallScore >= 80
+                                      ? "bg-amber-100 text-amber-700"
+                                      : "bg-red-100 text-red-700"
+                                }`}
+                              >
+                                <span className="text-sm font-medium">{evaluation.overallScore}%</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground">Evaluated By</span>
+                              <span className="text-sm font-medium">{evaluation.evaluatedBy}</span>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openViewDialog(evaluation)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Full Performance
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openEditDialog(evaluation)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit Evaluation
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExportReport(evaluation)}>
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Export Report
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => openContactDialog(evaluation)}>
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  Contact Supplier
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openDeleteDialog(evaluation)}
+                                  className="text-red-600 focus:text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete Evaluation
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
-                      </CardContent>
-                    </CollapsibleContent>
-                  </Card>
-                </Collapsible>
-              ))}
-              {filteredSuppliers.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <div className="rounded-full bg-muted p-3">
-                    <Search className="h-6 w-6 text-muted-foreground" />
+                      </CardHeader>
+                      <CollapsibleContent>
+                        <CardContent className="px-4 pb-4 pt-0 border-t">
+                          <div className="grid gap-6 md:grid-cols-3 mt-4">
+                            <div className="space-y-4">
+                              <h4 className="text-sm font-medium">Delivery Performance</h4>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm">Delivery Score</span>
+                                  <span
+                                    className={`text-sm font-medium ${
+                                      evaluation.deliveryScore >= 90
+                                        ? "text-green-600"
+                                        : evaluation.deliveryScore >= 80
+                                          ? "text-amber-600"
+                                          : "text-red-600"
+                                    }`}
+                                  >
+                                    {evaluation.deliveryScore}%
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={evaluation.deliveryScore}
+                                  className={`h-2 ${
+                                    evaluation.deliveryScore >= 90
+                                      ? "bg-green-100"
+                                      : evaluation.deliveryScore >= 80
+                                        ? "bg-amber-100"
+                                        : "bg-red-100"
+                                  }`}
+                                />
+                                <div className="flex items-center gap-1">
+                                  <Truck className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">On-time delivery performance</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <h4 className="text-sm font-medium">Quality Performance</h4>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm">Quality Score</span>
+                                  <span
+                                    className={`text-sm font-medium ${
+                                      evaluation.qualityScore >= 90
+                                        ? "text-green-600"
+                                        : evaluation.qualityScore >= 80
+                                          ? "text-amber-600"
+                                          : "text-red-600"
+                                    }`}
+                                  >
+                                    {evaluation.qualityScore}%
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={evaluation.qualityScore}
+                                  className={`h-2 ${
+                                    evaluation.qualityScore >= 90
+                                      ? "bg-green-100"
+                                      : evaluation.qualityScore >= 80
+                                        ? "bg-amber-100"
+                                        : "bg-red-100"
+                                  }`}
+                                />
+                                <div className="flex items-center gap-1">
+                                  <Check className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">Product/Service Quality</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <h4 className="text-sm font-medium">Service Performance</h4>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm">Service Score</span>
+                                  <span
+                                    className={`text-sm font-medium ${
+                                      evaluation.serviceScore >= 90
+                                        ? "text-green-600"
+                                        : evaluation.serviceScore >= 80
+                                          ? "text-amber-600"
+                                          : "text-red-600"
+                                    }`}
+                                  >
+                                    {evaluation.serviceScore}%
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={evaluation.serviceScore}
+                                  className={`h-2 ${
+                                    evaluation.serviceScore >= 90
+                                      ? "bg-green-100"
+                                      : evaluation.serviceScore >= 80
+                                        ? "bg-amber-100"
+                                        : "bg-red-100"
+                                  }`}
+                                />
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">Customer Service Rating</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid gap-6 md:grid-cols-3 mt-6">
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium">Cost Score</h4>
+                              <div className="flex items-center gap-2">
+                                <Progress value={evaluation.costScore} className="h-2 flex-1" />
+                                <span className="text-sm font-medium">{evaluation.costScore}%</span>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium">Compliance Score</h4>
+                              <div className="flex items-center gap-2">
+                                <Progress value={evaluation.complianceScore} className="h-2 flex-1" />
+                                <span className="text-sm font-medium">{evaluation.complianceScore}%</span>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium">Innovation Score</h4>
+                              <div className="flex items-center gap-2">
+                                <Progress value={evaluation.innovationScore} className="h-2 flex-1" />
+                                <span className="text-sm font-medium">{evaluation.innovationScore}%</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {evaluation.comments && (
+                            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                              <h4 className="text-sm font-medium mb-2">Comments</h4>
+                              <p className="text-sm text-muted-foreground">{evaluation.comments}</p>
+                            </div>
+                          )}
+
+                          {evaluation.recommendations && evaluation.recommendations.length > 0 && (
+                            <div className="mt-6">
+                              <h4 className="text-sm font-medium mb-2">Recommendations</h4>
+                              <ul className="space-y-1">
+                                {evaluation.recommendations.map((rec, index) => (
+                                  <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                                    <Check className="h-3 w-3 mt-1 text-green-500" />
+                                    {rec}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          <div className="flex justify-between items-center mt-6">
+                            <Button variant="outline" size="sm" onClick={() => openIssueDialog(evaluation)}>
+                              <AlertCircle className="mr-2 h-4 w-4" />
+                              Add Issue
+                            </Button>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" onClick={() => handleScheduleReview(evaluation)}>
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Schedule Review
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleExportReport(evaluation)}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Export Report
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
+                ))}
+                {filteredEvaluations.length === 0 && !loading && (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="rounded-full bg-muted p-3">
+                      <Search className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold">No evaluations found</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Try adjusting your search or filters, or create a new evaluation.
+                    </p>
+                    <Button className="mt-4" onClick={() => setIsCreateDialogOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Evaluation
+                    </Button>
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold">No suppliers found</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Try adjusting your search or filters to find what you're looking for.
-                  </p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="issues" className="space-y-4 mt-4">
@@ -786,43 +842,62 @@ export default function SupplierPerformance() {
                     <div className="col-span-2">Status</div>
                     <div className="col-span-2">Actions</div>
                   </div>
-                  {suppliers
-                    .flatMap((supplier) =>
-                      supplier.performanceIssues.map((issue) => ({
+                  {evaluations
+                    .flatMap((evaluation) =>
+                      (evaluation.issues || []).map((issue) => ({
                         ...issue,
-                        supplierName: supplier.name,
-                        supplierId: supplier.id,
+                        supplierName: evaluation.supplierName,
+                        evaluationId: evaluation.id,
                       })),
                     )
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((issue) => (
-                      <div key={issue.id} className="grid grid-cols-12 gap-4 p-3 border-t text-sm">
-                        <div className="col-span-2">{issue.supplierName}</div>
-                        <div className="col-span-2">{issue.id}</div>
+                      <div key={issue.id} className="grid grid-cols-12 gap-4 p-3 border-t text-sm items-center">
+                        <div className="col-span-2 font-medium">{issue.supplierName}</div>
+                        <div className="col-span-2 text-muted-foreground">{issue.id}</div>
                         <div className="col-span-2">{new Date(issue.date).toLocaleDateString()}</div>
                         <div className="col-span-2">{issue.type}</div>
                         <div className="col-span-2">
                           <Badge
                             variant={
-                              issue.status === "Resolved"
+                              issue.resolved
                                 ? "success"
-                                : issue.status === "In Progress"
-                                  ? "warning"
-                                  : "destructive"
+                                : issue.severity === "High"
+                                  ? "destructive"
+                                  : issue.severity === "Medium"
+                                    ? "warning"
+                                    : "outline"
                             }
                           >
-                            {issue.status}
+                            {issue.resolved ? "Resolved" : `${issue.severity} - Open`}
                           </Badge>
                         </div>
                         <div className="col-span-2">
-                          <Button variant="outline" size="sm">
-                            View Details
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const evaluation = evaluations.find((e) => e.id === issue.evaluationId)
+                              if (evaluation) {
+                                setSelectedEvaluation(evaluation)
+                                setExpandedEvaluation(evaluation.id)
+                                setActiveTab("performance")
+                              }
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Button>
                         </div>
                       </div>
                     ))}
-                  {suppliers.flatMap((supplier) => supplier.performanceIssues).length === 0 && (
-                    <div className="p-4 text-center text-muted-foreground">No performance issues found.</div>
+                  {evaluations.flatMap((e) => e.issues || []).length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center">
+                        <AlertCircle className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                        <p>No performance issues found.</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -835,14 +910,659 @@ export default function SupplierPerformance() {
                 <CardTitle>Performance Trends</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-8 text-center text-muted-foreground">
-                  Performance trend charts and analysis will be displayed here.
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-sm font-medium mb-4">Performance Score Distribution</h4>
+                    <div className="grid gap-4 md:grid-cols-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {evaluations.filter((e) => e.overallScore >= 90).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Excellent (90%+)</div>
+                        <Progress
+                          value={(evaluations.filter((e) => e.overallScore >= 90).length / Math.max(evaluations.length, 1)) * 100}
+                          className="h-2 mt-2 bg-green-100"
+                        />
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-amber-600">
+                          {evaluations.filter((e) => e.overallScore >= 80 && e.overallScore < 90).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Good (80-89%)</div>
+                        <Progress
+                          value={(evaluations.filter((e) => e.overallScore >= 80 && e.overallScore < 90).length / Math.max(evaluations.length, 1)) * 100}
+                          className="h-2 mt-2 bg-amber-100"
+                        />
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-orange-600">
+                          {evaluations.filter((e) => e.overallScore >= 70 && e.overallScore < 80).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Average (70-79%)</div>
+                        <Progress
+                          value={(evaluations.filter((e) => e.overallScore >= 70 && e.overallScore < 80).length / Math.max(evaluations.length, 1)) * 100}
+                          className="h-2 mt-2 bg-orange-100"
+                        />
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-red-600">
+                          {evaluations.filter((e) => e.overallScore < 70).length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Poor (Below 70%)</div>
+                        <Progress
+                          value={(evaluations.filter((e) => e.overallScore < 70).length / Math.max(evaluations.length, 1)) * 100}
+                          className="h-2 mt-2 bg-red-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium mb-4">Category Performance Overview</h4>
+                    <div className="space-y-3">
+                      {categories.map((category) => {
+                        const categoryEvals = evaluations.filter((e) => e.category === category)
+                        const avgScore = categoryEvals.length > 0
+                          ? Math.round(categoryEvals.reduce((acc, e) => acc + e.overallScore, 0) / categoryEvals.length)
+                          : 0
+                        return (
+                          <div key={category} className="flex items-center gap-4 p-3 border rounded-lg">
+                            <div className="w-32 font-medium text-sm">{category}</div>
+                            <div className="flex-1">
+                              <Progress value={avgScore} className="h-2" />
+                            </div>
+                            <div className="w-16 text-right text-sm font-medium">{avgScore}%</div>
+                            <div className="w-20 text-right text-xs text-muted-foreground">
+                              {categoryEvals.length} evals
+                            </div>
+                          </div>
+                        )
+                      })}
+                      {categories.length === 0 && (
+                        <div className="text-center text-sm text-muted-foreground py-4">
+                          No category data available
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium mb-4">Evaluation Status</h4>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {evaluations.filter((e) => e.status === "Draft").length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Draft Evaluations</div>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-amber-600">
+                          {evaluations.filter((e) => e.status === "Submitted").length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Submitted</div>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {evaluations.filter((e) => e.status === "Approved").length}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Approved</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Create Evaluation Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>New Performance Evaluation</DialogTitle>
+            <DialogDescription>Create a new performance evaluation for a supplier.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="supplier">Supplier *</Label>
+              <Select value={formData.supplierId} onValueChange={(value: string) => setFormData({ ...formData, supplierId: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name} ({supplier.category})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="evaluatedBy">Evaluated By *</Label>
+              <Input
+                id="evaluatedBy"
+                value={formData.evaluatedBy || ""}
+                onChange={(e) => setFormData({ ...formData, evaluatedBy: e.target.value })}
+                placeholder="Enter evaluator name"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="qualityScore">Quality Score *</Label>
+                <Input
+                  id="qualityScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.qualityScore || 80}
+                  onChange={(e) => setFormData({ ...formData, qualityScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="deliveryScore">Delivery Score *</Label>
+                <Input
+                  id="deliveryScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.deliveryScore || 80}
+                  onChange={(e) => setFormData({ ...formData, deliveryScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="costScore">Cost Score *</Label>
+                <Input
+                  id="costScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.costScore || 80}
+                  onChange={(e) => setFormData({ ...formData, costScore: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="serviceScore">Service Score *</Label>
+                <Input
+                  id="serviceScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.serviceScore || 80}
+                  onChange={(e) => setFormData({ ...formData, serviceScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="complianceScore">Compliance Score *</Label>
+                <Input
+                  id="complianceScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.complianceScore || 80}
+                  onChange={(e) => setFormData({ ...formData, complianceScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="innovationScore">Innovation Score *</Label>
+                <Input
+                  id="innovationScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.innovationScore || 80}
+                  onChange={(e) => setFormData({ ...formData, innovationScore: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="overallScore">Overall Score *</Label>
+              <Input
+                id="overallScore"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.overallScore || 80}
+                onChange={(e) => setFormData({ ...formData, overallScore: parseInt(e.target.value) })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Submitted">Submitted</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="comments">Comments</Label>
+              <Textarea
+                id="comments"
+                value={formData.comments || ""}
+                onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
+                placeholder="Additional comments about the evaluation"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateEvaluation}>Create Evaluation</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Evaluation Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Evaluation</DialogTitle>
+            <DialogDescription>Update the performance evaluation details.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-evaluatedBy">Evaluated By</Label>
+              <Input
+                id="edit-evaluatedBy"
+                value={formData.evaluatedBy || ""}
+                onChange={(e) => setFormData({ ...formData, evaluatedBy: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-qualityScore">Quality Score</Label>
+                <Input
+                  id="edit-qualityScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.qualityScore || 0}
+                  onChange={(e) => setFormData({ ...formData, qualityScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-deliveryScore">Delivery Score</Label>
+                <Input
+                  id="edit-deliveryScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.deliveryScore || 0}
+                  onChange={(e) => setFormData({ ...formData, deliveryScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-costScore">Cost Score</Label>
+                <Input
+                  id="edit-costScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.costScore || 0}
+                  onChange={(e) => setFormData({ ...formData, costScore: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-serviceScore">Service Score</Label>
+                <Input
+                  id="edit-serviceScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.serviceScore || 0}
+                  onChange={(e) => setFormData({ ...formData, serviceScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-complianceScore">Compliance Score</Label>
+                <Input
+                  id="edit-complianceScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.complianceScore || 0}
+                  onChange={(e) => setFormData({ ...formData, complianceScore: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-innovationScore">Innovation Score</Label>
+                <Input
+                  id="edit-innovationScore"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.innovationScore || 0}
+                  onChange={(e) => setFormData({ ...formData, innovationScore: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-overallScore">Overall Score</Label>
+              <Input
+                id="edit-overallScore"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.overallScore || 0}
+                onChange={(e) => setFormData({ ...formData, overallScore: parseInt(e.target.value) })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-status">Status</Label>
+              <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Submitted">Submitted</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-comments">Comments</Label>
+              <Textarea
+                id="edit-comments"
+                value={formData.comments || ""}
+                onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateEvaluation}>Update Evaluation</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Evaluation Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Performance Evaluation Details</DialogTitle>
+            <DialogDescription>Complete evaluation information for {selectedEvaluation?.supplierName}</DialogDescription>
+          </DialogHeader>
+          {selectedEvaluation && (
+            <div className="space-y-6 py-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-muted-foreground">Evaluation ID</Label>
+                  <p className="font-medium">{selectedEvaluation.id}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Supplier</Label>
+                  <p className="font-medium">{selectedEvaluation.supplierName}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Category</Label>
+                  <p className="font-medium">{selectedEvaluation.category}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Evaluation Date</Label>
+                  <p className="font-medium">{new Date(selectedEvaluation.evaluationDate).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Evaluated By</Label>
+                  <p className="font-medium">{selectedEvaluation.evaluatedBy}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <Badge
+                    variant={
+                      selectedEvaluation.status === "Approved"
+                        ? "success"
+                        : selectedEvaluation.status === "Submitted"
+                          ? "warning"
+                          : "outline"
+                    }
+                  >
+                    {selectedEvaluation.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-4">Performance Scores</h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label>Overall Score</Label>
+                      <span className="font-medium">{selectedEvaluation.overallScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.overallScore} />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label>Quality Score</Label>
+                      <span className="font-medium">{selectedEvaluation.qualityScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.qualityScore} />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label>Delivery Score</Label>
+                      <span className="font-medium">{selectedEvaluation.deliveryScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.deliveryScore} />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label>Cost Score</Label>
+                      <span className="font-medium">{selectedEvaluation.costScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.costScore} />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label>Service Score</Label>
+                      <span className="font-medium">{selectedEvaluation.serviceScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.serviceScore} />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label>Compliance Score</Label>
+                      <span className="font-medium">{selectedEvaluation.complianceScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.complianceScore} />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <div className="flex justify-between">
+                      <Label>Innovation Score</Label>
+                      <span className="font-medium">{selectedEvaluation.innovationScore}%</span>
+                    </div>
+                    <Progress value={selectedEvaluation.innovationScore} />
+                  </div>
+                </div>
+              </div>
+
+              {selectedEvaluation.comments && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-2">Comments</h4>
+                  <p className="text-sm text-muted-foreground">{selectedEvaluation.comments}</p>
+                </div>
+              )}
+
+              {selectedEvaluation.issues && selectedEvaluation.issues.length > 0 && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Performance Issues</h4>
+                  <div className="space-y-2">
+                    {selectedEvaluation.issues.map((issue) => (
+                      <div key={issue.id} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium">{issue.type}</span>
+                          <Badge
+                            variant={
+                              issue.resolved
+                                ? "success"
+                                : issue.severity === "High"
+                                  ? "destructive"
+                                  : issue.severity === "Medium"
+                                    ? "warning"
+                                    : "outline"
+                            }
+                          >
+                            {issue.resolved ? "Resolved" : issue.severity}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{issue.description}</p>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          Date: {new Date(issue.date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedEvaluation.recommendations && selectedEvaluation.recommendations.length > 0 && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Recommendations</h4>
+                  <ul className="space-y-2">
+                    {selectedEvaluation.recommendations.map((rec, index) => (
+                      <li key={index} className="text-sm flex items-start gap-2">
+                        <Check className="h-4 w-4 text-green-500 mt-0.5" />
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Evaluation Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Evaluation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the evaluation for {selectedEvaluation?.supplierName}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteEvaluation} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Add Issue Dialog */}
+      <Dialog open={isIssueDialogOpen} onOpenChange={setIsIssueDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Performance Issue</DialogTitle>
+            <DialogDescription>Document a performance issue for this evaluation.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="issueType">Issue Type *</Label>
+              <Select value={issueForm.type} onValueChange={(value: string) => setIssueForm({ ...issueForm, type: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Quality Issue">Quality Issue</SelectItem>
+                  <SelectItem value="Delivery Delay">Delivery Delay</SelectItem>
+                  <SelectItem value="Communication Issue">Communication Issue</SelectItem>
+                  <SelectItem value="Cost Issue">Cost Issue</SelectItem>
+                  <SelectItem value="Compliance Issue">Compliance Issue</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="issueSeverity">Severity</Label>
+              <Select value={issueForm.severity} onValueChange={(value: any) => setIssueForm({ ...issueForm, severity: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="issueDescription">Description *</Label>
+              <Textarea
+                id="issueDescription"
+                value={issueForm.description || ""}
+                onChange={(e) => setIssueForm({ ...issueForm, description: e.target.value })}
+                placeholder="Describe the issue in detail"
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsIssueDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddIssue}>Add Issue</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Supplier Dialog */}
+      <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Supplier</DialogTitle>
+            <DialogDescription>Send a message to {selectedEvaluation?.supplierName}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="contactSubject">Subject *</Label>
+              <Input
+                id="contactSubject"
+                value={contactForm.subject}
+                onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                placeholder="Enter message subject"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="contactMessage">Message *</Label>
+              <Textarea
+                id="contactMessage"
+                value={contactForm.message}
+                onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                placeholder="Enter your message"
+                rows={5}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsContactDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleContactSupplier}>Send Message</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarInset>
   )
 }

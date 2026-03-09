@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { spendAnalysisData } from "@/lib/local-data"
 import {
   ArrowDown,
   ArrowUp,
@@ -12,6 +13,7 @@ import {
   RefreshCw,
   Save,
   Share2,
+  X,
 } from "lucide-react"
 import {
   Area,
@@ -21,6 +23,8 @@ import {
   CartesianGrid,
   Cell,
   Legend,
+  Line,
+  LineChart as LineChartComponent,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -28,6 +32,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { addDays, format, subDays, subMonths, subYears } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,62 +41,278 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
-// Sample data for spend analysis
-const spendByCategory = [
-  { name: "IT Equipment", value: 4000000 },
-  { name: "Office Supplies", value: 1500000 },
-  { name: "Professional Services", value: 3000000 },
-  { name: "Marketing", value: 2000000 },
-  { name: "Facilities", value: 2500000 },
-]
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d", "#FFC658", "#8DD1E1"]
 
-const spendBySupplier = [
-  { name: "Tech Solutions Inc.", value: 2500000 },
-  { name: "Office Depot", value: 1200000 },
-  { name: "Consulting Partners", value: 1800000 },
-  { name: "Marketing Agency", value: 1500000 },
-  { name: "Facilities Management", value: 1200000 },
-  { name: "Other Suppliers", value: 2800000 },
-]
+interface SpendData {
+  totalSpend: number
+  categories: number
+  activeSuppliers: number
+  avgCostPerOrder: number
+  spendByCategory: Array<{ name: string; value: number }>
+  spendBySupplier: Array<{ name: string; value: number }>
+  spendByDepartment: Array<{ name: string; value: number }>
+  spendTrend: Array<{ month: string; value: number }>
+  categoryTrend: Array<{ name: string; [key: string]: string | number }>
+}
 
-const spendTrend = [
-  { month: "Jan", spend: 1200000 },
-  { month: "Feb", spend: 1900000 },
-  { month: "Mar", spend: 1800000 },
-  { month: "Apr", spend: 2400000 },
-  { month: "May", spend: 1700000 },
-  { month: "Jun", spend: 2100000 },
-  { month: "Jul", spend: 2300000 },
-  { month: "Aug", spend: 2800000 },
-  { month: "Sep", spend: 2600000 },
-  { month: "Oct", spend: 2900000 },
-  { month: "Nov", spend: 3100000 },
-  { month: "Dec", spend: 3400000 },
-]
+interface FilterState {
+  category: string
+  supplier: string
+  department: string
+}
 
-const spendByDepartment = [
-  { name: "IT", value: 5000000 },
-  { name: "Marketing", value: 3000000 },
-  { name: "Operations", value: 4000000 },
-  { name: "HR", value: 1500000 },
-  { name: "Finance", value: 2000000 },
-]
-
-const categoryTrend = [
-  { name: "Jan", IT: 500000, Marketing: 300000, Operations: 400000, HR: 100000, Finance: 150000 },
-  { name: "Feb", IT: 550000, Marketing: 320000, Operations: 420000, HR: 110000, Finance: 160000 },
-  { name: "Mar", IT: 580000, Marketing: 350000, Operations: 450000, HR: 120000, Finance: 170000 },
-  { name: "Apr", IT: 620000, Marketing: 380000, Operations: 480000, HR: 130000, Finance: 180000 },
-  { name: "May", IT: 650000, Marketing: 400000, Operations: 500000, HR: 140000, Finance: 190000 },
-  { name: "Jun", IT: 680000, Marketing: 420000, Operations: 520000, HR: 150000, Finance: 200000 },
-]
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d"]
+interface SavedView {
+  name: string
+  timeframe: string
+  filters: FilterState
+}
 
 export default function SpendAnalysis() {
   const [timeframe, setTimeframe] = useState("year")
   const [view, setView] = useState("overview")
+  const [spendData, setSpendData] = useState<SpendData>({
+    totalSpend: spendAnalysisData.totalSpend,
+    categories: spendAnalysisData.categories,
+    activeSuppliers: spendAnalysisData.activeSuppliers,
+    avgCostPerOrder: spendAnalysisData.avgCostPerOrder,
+    spendByCategory: spendAnalysisData.spendByCategory,
+    spendBySupplier: spendAnalysisData.spendBySupplier,
+    spendByDepartment: spendAnalysisData.spendByDepartment,
+    spendTrend: spendAnalysisData.spendTrend,
+    categoryTrend: spendAnalysisData.categoryTrend,
+  })
+  const [loading, setLoading] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  
+  // Custom date range state
+  const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false)
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined)
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined)
+  
+  // Filter states
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedSupplier, setSelectedSupplier] = useState("all")
+  const [selectedDepartment, setSelectedDepartment] = useState("all")
+  
+  // Saved views
+  const [isSaveViewOpen, setIsSaveViewOpen] = useState(false)
+  const [savedViews, setSavedViews] = useState<SavedView[]>([])
+  const [viewName, setViewName] = useState("")
+
+  // No need to fetch - using local data
+  const fetchSpendData = () => {
+    // Data is already loaded from local-data
+  }
+
+  // Generate mock data based on timeframe
+  const generateMockData = (tf: string): SpendData => {
+    const multiplier = tf === 'month' ? 0.1 : tf === 'quarter' ? 0.3 : tf === 'ytd' ? 0.8 : 1
+    
+    return {
+      totalSpend: Math.round(24500000 * multiplier),
+      categories: 15,
+      activeSuppliers: 248,
+      avgCostPerOrder: 12500,
+      spendByCategory: [
+        { name: "IT Equipment", value: Math.round(4000000 * multiplier) },
+        { name: "Office Supplies", value: Math.round(1500000 * multiplier) },
+        { name: "Professional Services", value: Math.round(3000000 * multiplier) },
+        { name: "Marketing", value: Math.round(2000000 * multiplier) },
+        { name: "Facilities", value: Math.round(2500000 * multiplier) },
+      ],
+      spendBySupplier: [
+        { name: "Tech Solutions Inc.", value: Math.round(2500000 * multiplier) },
+        { name: "Office Depot", value: Math.round(1200000 * multiplier) },
+        { name: "Consulting Partners", value: Math.round(1800000 * multiplier) },
+        { name: "Marketing Agency", value: Math.round(1500000 * multiplier) },
+        { name: "Facilities Management", value: Math.round(1200000 * multiplier) },
+        { name: "Other Suppliers", value: Math.round(2800000 * multiplier) },
+      ],
+      spendByDepartment: [
+        { name: "IT", value: Math.round(5000000 * multiplier) },
+        { name: "Marketing", value: Math.round(3000000 * multiplier) },
+        { name: "Operations", value: Math.round(4000000 * multiplier) },
+        { name: "HR", value: Math.round(1500000 * multiplier) },
+        { name: "Finance", value: Math.round(2000000 * multiplier) },
+      ],
+      spendTrend: [
+        { month: "Jan", value: Math.round(1200000 * multiplier) },
+        { month: "Feb", value: Math.round(1900000 * multiplier) },
+        { month: "Mar", value: Math.round(1800000 * multiplier) },
+        { month: "Apr", value: Math.round(2400000 * multiplier) },
+        { month: "May", value: Math.round(1700000 * multiplier) },
+        { month: "Jun", value: Math.round(2100000 * multiplier) },
+        { month: "Jul", value: Math.round(2300000 * multiplier) },
+        { month: "Aug", value: Math.round(2800000 * multiplier) },
+        { month: "Sep", value: Math.round(2600000 * multiplier) },
+        { month: "Oct", value: Math.round(2900000 * multiplier) },
+        { month: "Nov", value: Math.round(3100000 * multiplier) },
+        { month: "Dec", value: Math.round(3400000 * multiplier) },
+      ],
+      categoryTrend: [
+        { name: "Jan", IT: Math.round(500000 * multiplier), Marketing: Math.round(300000 * multiplier), Operations: Math.round(400000 * multiplier), HR: Math.round(100000 * multiplier), Finance: Math.round(150000 * multiplier) },
+        { name: "Feb", IT: Math.round(550000 * multiplier), Marketing: Math.round(320000 * multiplier), Operations: Math.round(420000 * multiplier), HR: Math.round(110000 * multiplier), Finance: Math.round(160000 * multiplier) },
+        { name: "Mar", IT: Math.round(580000 * multiplier), Marketing: Math.round(350000 * multiplier), Operations: Math.round(450000 * multiplier), HR: Math.round(120000 * multiplier), Finance: Math.round(170000 * multiplier) },
+        { name: "Apr", IT: Math.round(620000 * multiplier), Marketing: Math.round(380000 * multiplier), Operations: Math.round(480000 * multiplier), HR: Math.round(130000 * multiplier), Finance: Math.round(180000 * multiplier) },
+        { name: "May", IT: Math.round(650000 * multiplier), Marketing: Math.round(400000 * multiplier), Operations: Math.round(500000 * multiplier), HR: Math.round(140000 * multiplier), Finance: Math.round(190000 * multiplier) },
+        { name: "Jun", IT: Math.round(680000 * multiplier), Marketing: Math.round(420000 * multiplier), Operations: Math.round(520000 * multiplier), HR: Math.round(150000 * multiplier), Finance: Math.round(200000 * multiplier) },
+      ],
+    }
+  }
+
+  // Load saved views from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('spendAnalysisViews')
+    if (saved) {
+      setSavedViews(JSON.parse(saved))
+    }
+  }, [])
+
+  // No need to fetch on mount - using local data
+  // Data is already loaded from local-data
+  
+  // For timeframe changes, we could adjust the local data if needed
+  // For now, keeping it simple with the default local data
+
+  // Handle timeframe change
+  const handleTimeframeChange = (value: string) => {
+    setTimeframe(value)
+    // Could adjust data based on timeframe here
+    // For now, just updating the state
+  }
+
+  // Handle refresh
+  const handleRefresh = () => {
+    // Data is local, no need to refresh
+    console.log('Data refreshed (local)')
+  }
+
+  // Handle custom date range apply
+  const handleApplyCustomRange = () => {
+    if (customStartDate && customEndDate) {
+      setTimeframe('custom')
+      setIsCustomRangeOpen(false)
+      fetchSpendData('custom')
+    }
+  }
+
+  // Handle save view
+  const handleSaveView = () => {
+    if (viewName.trim()) {
+      const newView: SavedView = {
+        name: viewName,
+        timeframe,
+        filters: {
+          category: selectedCategory,
+          supplier: selectedSupplier,
+          department: selectedDepartment,
+        },
+      }
+      const updatedViews = [...savedViews, newView]
+      setSavedViews(updatedViews)
+      localStorage.setItem('spendAnalysisViews', JSON.stringify(updatedViews))
+      setIsSaveViewOpen(false)
+      setViewName('')
+    }
+  }
+
+  // Handle share
+  const handleShare = () => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('timeframe', timeframe)
+    url.searchParams.set('category', selectedCategory)
+    url.searchParams.set('supplier', selectedSupplier)
+    url.searchParams.set('department', selectedDepartment)
+    
+    navigator.clipboard.writeText(url.toString()).then(() => {
+      alert('Link copied to clipboard!')
+    }).catch(() => {
+      alert('Failed to copy link')
+    })
+  }
+
+  // Handle export
+  const handleExport = () => {
+    if (!spendData) return
+    
+    const exportData = {
+      timeframe,
+      filters: {
+        category: selectedCategory,
+        supplier: selectedSupplier,
+        department: selectedDepartment,
+      },
+      data: spendData,
+      exportDate: new Date().toISOString(),
+    }
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `spend-analysis-${timeframe}-${format(new Date(), 'yyyy-MM-dd')}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // Download chart data
+  const handleDownloadCSV = () => {
+    if (!spendData) return
+    
+    const csvContent = "Category,Spend\n" + 
+      spendData.spendByCategory.map(item => `${item.name},${item.value}`).join("\n")
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `spend-by-category-${timeframe}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  // Format compact currency
+  const formatCompactCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      compactDisplay: "short",
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 1,
+    }).format(value)
+  }
+
+  if (loading || !spendData) {
+    return (
+      <SidebarInset>
+        <div className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
+          <SidebarTrigger />
+          <div className="flex items-center text-lg font-semibold">Spend Analysis</div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-muted-foreground">Loading spend data...</div>
+        </div>
+      </SidebarInset>
+    )
+  }
 
   return (
     <SidebarInset>
@@ -99,7 +320,7 @@ export default function SpendAnalysis() {
         <SidebarTrigger />
         <div className="flex items-center text-lg font-semibold">Spend Analysis</div>
         <div className="ml-auto flex items-center gap-4">
-          <Select value={timeframe} onValueChange={setTimeframe}>
+          <Select value={timeframe} onValueChange={handleTimeframeChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select timeframe" />
             </SelectTrigger>
@@ -110,20 +331,134 @@ export default function SpendAnalysis() {
               <SelectItem value="ytd">Year to Date</SelectItem>
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline">
-            <Calendar className="mr-2 h-4 w-4" />
-            Custom Range
-          </Button>
-          <Button size="sm" variant="outline">
+          
+          <Dialog open={isCustomRangeOpen} onOpenChange={setIsCustomRangeOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <Calendar className="mr-2 h-4 w-4" />
+                Custom Range
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select Date Range</DialogTitle>
+                <DialogDescription>
+                  Choose a custom date range for your spend analysis
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {customStartDate ? format(customStartDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={customStartDate}
+                        onSelect={setCustomStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {customEndDate ? format(customEndDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={customEndDate}
+                        onSelect={setCustomEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCustomRangeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleApplyCustomRange} disabled={!customStartDate || !customEndDate}>
+                  Apply Range
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          <Button size="sm" variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button size="sm" variant="outline">
+          
+          <Button size="sm" variant="outline" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="mr-2 h-4 w-4" />
             Filters
           </Button>
         </div>
       </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <div className="border-b bg-muted/50 p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">Category:</Label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {spendData.spendByCategory.map(cat => (
+                    <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">Supplier:</Label>
+              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Suppliers</SelectItem>
+                  {spendData.spendBySupplier.map(sup => (
+                    <SelectItem key={sup.name} value={sup.name}>{sup.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium">Department:</Label>
+              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {spendData.spendByDepartment.map(dept => (
+                    <SelectItem key={dept.name} value={dept.name}>{dept.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between">
           <Tabs defaultValue="overview" value={view} onValueChange={setView}>
@@ -143,7 +478,7 @@ export default function SpendAnalysis() {
                       <LineChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">$24.5M</div>
+                      <div className="text-2xl font-bold">{formatCompactCurrency(spendData.totalSpend)}</div>
                       <p className="text-xs text-muted-foreground">
                         <span className="text-green-500 inline-flex items-center">
                           <ArrowUp className="mr-1 h-3 w-3" />
@@ -159,10 +494,11 @@ export default function SpendAnalysis() {
                       <LineChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">15</div>
+                      <div className="text-2xl font-bold">{spendData.categories}</div>
                       <p className="text-xs text-muted-foreground">
                         <span className="text-green-500 inline-flex items-center">
-                          <ArrowUp className="mr-1 h-3 w-3" />2
+                          <ArrowUp className="mr-1 h-3 w-3" />
+                          2
                         </span>{" "}
                         new categories added
                       </p>
@@ -174,10 +510,11 @@ export default function SpendAnalysis() {
                       <LineChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">248</div>
+                      <div className="text-2xl font-bold">{spendData.activeSuppliers}</div>
                       <p className="text-xs text-muted-foreground">
                         <span className="text-red-500 inline-flex items-center">
-                          <ArrowDown className="mr-1 h-3 w-3" />5
+                          <ArrowDown className="mr-1 h-3 w-3" />
+                          5
                         </span>{" "}
                         from previous period
                       </p>
@@ -189,7 +526,7 @@ export default function SpendAnalysis() {
                       <LineChart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">$12,500</div>
+                      <div className="text-2xl font-bold">{formatCurrency(spendData.avgCostPerOrder)}</div>
                       <p className="text-xs text-muted-foreground">
                         <span className="text-green-500 inline-flex items-center">
                           <ArrowUp className="mr-1 h-3 w-3" />
@@ -215,9 +552,9 @@ export default function SpendAnalysis() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Download CSV</DropdownMenuItem>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem>Set Alerts</DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleDownloadCSV}>Download CSV</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => alert('View details clicked')}>View Details</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => alert('Set alerts clicked')}>Set Alerts</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </CardHeader>
@@ -233,7 +570,7 @@ export default function SpendAnalysis() {
                       >
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart
-                            data={spendTrend}
+                            data={spendData.spendTrend}
                             margin={{
                               top: 10,
                               right: 30,
@@ -244,32 +581,18 @@ export default function SpendAnalysis() {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="month" />
                             <YAxis
-                              tickFormatter={(value) =>
-                                new Intl.NumberFormat("en-US", {
-                                  notation: "compact",
-                                  compactDisplay: "short",
-                                  style: "currency",
-                                  currency: "USD",
-                                  maximumFractionDigits: 1,
-                                }).format(value)
-                              }
+                              tickFormatter={(value) => formatCompactCurrency(value)}
                             />
                             <ChartTooltip
                               content={
                                 <ChartTooltipContent
-                                  formatter={(value) =>
-                                    new Intl.NumberFormat("en-US", {
-                                      style: "currency",
-                                      currency: "USD",
-                                      maximumFractionDigits: 0,
-                                    }).format(value as number)
-                                  }
+                                  formatter={(value) => formatCurrency(value as number)}
                                 />
                               }
                             />
                             <Area
                               type="monotone"
-                              dataKey="spend"
+                              dataKey="value"
                               stroke="var(--color-spend)"
                               fill="var(--color-spend)"
                               fillOpacity={0.2}
@@ -289,7 +612,7 @@ export default function SpendAnalysis() {
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={spendByCategory}
+                              data={spendData.spendByCategory}
                               cx="50%"
                               cy="50%"
                               labelLine={false}
@@ -298,19 +621,11 @@ export default function SpendAnalysis() {
                               dataKey="value"
                               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                             >
-                              {spendByCategory.map((entry, index) => (
+                              {spendData.spendByCategory.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Pie>
-                            <Tooltip
-                              formatter={(value) =>
-                                new Intl.NumberFormat("en-US", {
-                                  style: "currency",
-                                  currency: "USD",
-                                  maximumFractionDigits: 0,
-                                }).format(value as number)
-                              }
-                            />
+                            <Tooltip formatter={(value) => formatCurrency(value as number)} />
                             <Legend />
                           </PieChart>
                         </ResponsiveContainer>
@@ -329,7 +644,7 @@ export default function SpendAnalysis() {
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={spendBySupplier}
+                              data={spendData.spendBySupplier}
                               cx="50%"
                               cy="50%"
                               labelLine={false}
@@ -338,19 +653,11 @@ export default function SpendAnalysis() {
                               dataKey="value"
                               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                             >
-                              {spendBySupplier.map((entry, index) => (
+                              {spendData.spendBySupplier.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Pie>
-                            <Tooltip
-                              formatter={(value) =>
-                                new Intl.NumberFormat("en-US", {
-                                  style: "currency",
-                                  currency: "USD",
-                                  maximumFractionDigits: 0,
-                                }).format(value as number)
-                              }
-                            />
+                            <Tooltip formatter={(value) => formatCurrency(value as number)} />
                             <Legend />
                           </PieChart>
                         </ResponsiveContainer>
@@ -366,7 +673,7 @@ export default function SpendAnalysis() {
                       <div className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
-                            data={spendByDepartment}
+                            data={spendData.spendByDepartment}
                             layout="vertical"
                             margin={{
                               top: 5,
@@ -378,28 +685,12 @@ export default function SpendAnalysis() {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               type="number"
-                              tickFormatter={(value) =>
-                                new Intl.NumberFormat("en-US", {
-                                  notation: "compact",
-                                  compactDisplay: "short",
-                                  style: "currency",
-                                  currency: "USD",
-                                  maximumFractionDigits: 1,
-                                }).format(value)
-                              }
+                              tickFormatter={(value) => formatCompactCurrency(value)}
                             />
                             <YAxis type="category" dataKey="name" />
-                            <Tooltip
-                              formatter={(value) =>
-                                new Intl.NumberFormat("en-US", {
-                                  style: "currency",
-                                  currency: "USD",
-                                  maximumFractionDigits: 0,
-                                }).format(value as number)
-                              }
-                            />
+                            <Tooltip formatter={(value) => formatCurrency(value as number)} />
                             <Bar dataKey="value" fill="#8884d8">
-                              {spendByDepartment.map((entry, index) => (
+                              {spendData.spendByDepartment.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Bar>
@@ -412,44 +703,287 @@ export default function SpendAnalysis() {
               </TabsContent>
 
               <TabsContent value="category" className="space-y-4">
-                {/* Category-specific analysis content would go here */}
-                <div className="p-8 text-center text-muted-foreground">
-                  Category-specific analysis content will be displayed here.
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Category Breakdown</CardTitle>
+                      <CardDescription>Detailed spend analysis by category</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={spendData.spendByCategory} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis tickFormatter={(value) => formatCompactCurrency(value)} />
+                            <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                            <Bar dataKey="value">
+                              {spendData.spendByCategory.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Category Details</CardTitle>
+                      <CardDescription>Category spend summary</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {spendData.spendByCategory.map((cat, idx) => (
+                          <div key={cat.name} className="flex items-center justify-between border-b pb-2">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="h-3 w-3 rounded-full"
+                                style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                              />
+                              <span className="font-medium">{cat.name}</span>
+                            </div>
+                            <span className="font-bold">{formatCurrency(cat.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 
               <TabsContent value="supplier" className="space-y-4">
-                {/* Supplier-specific analysis content would go here */}
-                <div className="p-8 text-center text-muted-foreground">
-                  Supplier-specific analysis content will be displayed here.
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Supplier Spend Distribution</CardTitle>
+                      <CardDescription>Spend across top suppliers</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={spendData.spendBySupplier} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                            <YAxis tickFormatter={(value) => formatCompactCurrency(value)} />
+                            <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                            <Bar dataKey="value">
+                              {spendData.spendBySupplier.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Supplier Ranking</CardTitle>
+                      <CardDescription>Top suppliers by spend</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                        {spendData.spendBySupplier.map((sup, idx) => (
+                          <div key={sup.name} className="flex items-center justify-between border-b pb-2">
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                              <span className="font-medium">{sup.name}</span>
+                            </div>
+                            <span className="font-bold">{formatCurrency(sup.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 
               <TabsContent value="department" className="space-y-4">
-                {/* Department-specific analysis content would go here */}
-                <div className="p-8 text-center text-muted-foreground">
-                  Department-specific analysis content will be displayed here.
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Department Spend Analysis</CardTitle>
+                      <CardDescription>Spend distribution by department</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={spendData.spendByDepartment} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis tickFormatter={(value) => formatCompactCurrency(value)} />
+                            <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                            <Bar dataKey="value">
+                              {spendData.spendByDepartment.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Department Summary</CardTitle>
+                      <CardDescription>Key metrics by department</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {spendData.spendByDepartment.map((dept, idx) => {
+                          const percentage = ((dept.value / spendData.totalSpend) * 100).toFixed(1)
+                          return (
+                            <div key={dept.name} className="space-y-2 border-b pb-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="h-3 w-3 rounded-full"
+                                    style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                                  />
+                                  <span className="font-medium">{dept.name}</span>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-bold">{formatCurrency(dept.value)}</div>
+                                  <div className="text-xs text-muted-foreground">{percentage}% of total</div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 
               <TabsContent value="trends" className="space-y-4">
-                {/* Trend analysis content would go here */}
-                <div className="p-8 text-center text-muted-foreground">
-                  Trend analysis content will be displayed here.
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Category Trends Over Time</CardTitle>
+                    <CardDescription>Monthly spend trends by category</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[400px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChartComponent data={spendData.categoryTrend} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis tickFormatter={(value) => formatCompactCurrency(value as number)} />
+                          <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                          <Legend />
+                          <Line type="monotone" dataKey="IT" stroke={COLORS[0]} strokeWidth={2} />
+                          <Line type="monotone" dataKey="Marketing" stroke={COLORS[1]} strokeWidth={2} />
+                          <Line type="monotone" dataKey="Operations" stroke={COLORS[2]} strokeWidth={2} />
+                          <Line type="monotone" dataKey="HR" stroke={COLORS[3]} strokeWidth={2} />
+                          <Line type="monotone" dataKey="Finance" stroke={COLORS[4]} strokeWidth={2} />
+                        </LineChartComponent>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Fastest Growing Category</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">IT Equipment</div>
+                      <p className="text-sm text-muted-foreground">+24% from last period</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Highest Spending Department</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">IT</div>
+                      <p className="text-sm text-muted-foreground">{formatCompactCurrency(spendData.spendByDepartment[0]?.value || 0)} total</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top Supplier</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-lg font-bold">Tech Solutions Inc.</div>
+                      <p className="text-sm text-muted-foreground">{formatCompactCurrency(spendData.spendBySupplier[0]?.value || 0)} total spend</p>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
             </div>
           </Tabs>
+          
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Save className="mr-2 h-4 w-4" />
-              Save View
-            </Button>
-            <Button variant="outline" size="sm">
+            <Dialog open={isSaveViewOpen} onOpenChange={setIsSaveViewOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save View
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Save Current View</DialogTitle>
+                  <DialogDescription>
+                    Save your current filter settings as a named view for quick access
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="view-name">View Name</Label>
+                    <input
+                      id="view-name"
+                      type="text"
+                      value={viewName}
+                      onChange={(e) => setViewName(e.target.value)}
+                      placeholder="My Custom View"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                  {savedViews.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>Saved Views</Label>
+                      <div className="space-y-1 max-h-[150px] overflow-y-auto">
+                        {savedViews.map((sv, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-sm p-2 border rounded">
+                            <span>{sv.name}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setTimeframe(sv.timeframe)
+                                setSelectedCategory(sv.filters.category)
+                                setSelectedSupplier(sv.filters.supplier)
+                                setSelectedDepartment(sv.filters.department)
+                              }}
+                            >
+                              Load
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsSaveViewOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveView} disabled={!viewName.trim()}>
+                    Save View
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
+            <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
             </Button>
-            <Button variant="outline" size="sm">
+            
+            <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>

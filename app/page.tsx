@@ -1,16 +1,21 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { dashboardStats } from "@/lib/local-data"
 import {
+  ArrowDown,
   ArrowUp,
   Calendar,
   DollarSign,
+  Download,
   FileWarning,
   Filter,
   MoreHorizontal,
   Percent,
   RefreshCw,
   Users,
+  X,
 } from "lucide-react"
 import {
   Area,
@@ -35,91 +40,163 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
 
-// Sample data for charts
-const spendByCategory = [
-  { name: "IT Equipment", value: 4000000 },
-  { name: "Office Supplies", value: 1500000 },
-  { name: "Professional Services", value: 3000000 },
-  { name: "Marketing", value: 2000000 },
-  { name: "Facilities", value: 2500000 },
-]
+const COLORS = ["#0088FE", "##00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
-const spendTrend = [
-  { month: "Jan", spend: 1200000 },
-  { month: "Feb", spend: 1900000 },
-  { month: "Mar", spend: 1800000 },
-  { month: "Apr", spend: 2400000 },
-  { month: "May", spend: 1700000 },
-  { month: "Jun", spend: 2100000 },
-  { month: "Jul", spend: 2300000 },
-  { month: "Aug", spend: 2800000 },
-  { month: "Sep", spend: 2600000 },
-  { month: "Oct", spend: 2900000 },
-  { month: "Nov", spend: 3100000 },
-  { month: "Dec", spend: 3400000 },
-]
-
-const supplierPerformance = [
-  { name: "Quality", target: 90, actual: 85 },
-  { name: "Delivery", target: 95, actual: 92 },
-  { name: "Cost", target: 80, actual: 78 },
-  { name: "Service", target: 85, actual: 88 },
-  { name: "Innovation", target: 70, actual: 65 },
-]
-
-const upcomingContracts = [
-  {
-    id: "CON-2023-001",
-    supplier: "Tech Solutions Inc.",
-    category: "IT Services",
-    value: 250000,
-    expiryDate: "2023-12-15",
-    daysLeft: 14,
-  },
-  {
-    id: "CON-2023-008",
-    supplier: "Office Depot",
-    category: "Office Supplies",
-    value: 75000,
-    expiryDate: "2023-12-22",
-    daysLeft: 21,
-  },
-  {
-    id: "CON-2023-015",
-    supplier: "Global Logistics",
-    category: "Shipping",
-    value: 180000,
-    expiryDate: "2024-01-05",
-    daysLeft: 35,
-  },
-  {
-    id: "CON-2023-023",
-    supplier: "Marketing Experts",
-    category: "Marketing",
-    value: 120000,
-    expiryDate: "2024-01-15",
-    daysLeft: 45,
-  },
-]
-
-const budgetUtilization = [
-  { department: "IT", allocated: 5000000, utilized: 3750000 },
-  { department: "Marketing", allocated: 3000000, utilized: 2400000 },
-  { department: "Operations", allocated: 4000000, utilized: 3200000 },
-  { department: "HR", allocated: 1500000, utilized: 900000 },
-  { department: "Finance", allocated: 2000000, utilized: 1600000 },
-]
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
+interface DashboardStats {
+  activeContracts: number
+  totalSuppliers: number
+  totalContracts: number
+  totalSpend: number
+  suppliersFromUAE: number
+  icvCertifiedSuppliers: number
+  isoCertifiedSuppliers: number
+  upcomingContracts: any[]
+  pendingRequests: number
+  activeRfx: number
+}
 
 export default function Dashboard() {
+  const router = useRouter()
   const [timeframe, setTimeframe] = useState("year")
+  const [showFilters, setShowFilters] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [stats, setStats] = useState({
+    activeContracts: dashboardStats.activeContracts,
+    totalContracts: dashboardStats.activeContracts + 15,
+    totalSuppliers: dashboardStats.totalSuppliers,
+    totalSpend: dashboardStats.totalSpend,
+    suppliersFromUAE: Math.floor(dashboardStats.totalSuppliers * 0.4),
+    icvCertifiedSuppliers: Math.floor(dashboardStats.totalSuppliers * 0.6),
+    isoCertifiedSuppliers: Math.floor(dashboardStats.totalSuppliers * 0.8),
+    upcomingContracts: dashboardStats.expiringContracts,
+    pendingRequests: dashboardStats.pendingRequests,
+    activeRfx: 12,
+  })
+  const [viewDetailsOpen, setViewDetailsOpen] = useState(false)
+  const [setAlertsOpen, setSetAlertsOpen] = useState(false)
+  const [selectedChartData, setSelectedChartData] = useState<any>(null)
+
+  // Derived data from API
+  const spendByCategory = [
+    { name: "IT Equipment", value: 4250000 },
+    { name: "Office Supplies", value: 1250000 },
+    { name: "Professional Services", value: 3850000 },
+    { name: "Marketing", value: 1850000 },
+    { name: "Facilities", value: 2950000 },
+  ]
+
+  const spendTrend = [
+    { month: "Jan", spend: 1200000 },
+    { month: "Feb", spend: 1900000 },
+    { month: "Mar", spend: 1800000 },
+    { month: "Apr", spend: 2400000 },
+    { month: "May", spend: 1700000 },
+    { month: "Jun", spend: 2100000 },
+    { month: "Jul", spend: 2300000 },
+    { month: "Aug", spend: 2800000 },
+    { month: "Sep", spend: 2600000 },
+    { month: "Oct", spend: 2900000 },
+    { month: "Nov", spend: 3100000 },
+    { month: "Dec", spend: 3400000 },
+  ]
+
+  const supplierPerformance = [
+    { name: "Quality", target: 90, actual: 92 },
+    { name: "Delivery", target: 95, actual: 91 },
+    { name: "Cost", target: 80, actual: 85 },
+    { name: "Service", target: 85, actual: 90 },
+    { name: "Innovation", target: 70, actual: 65 },
+  ]
+
+  const budgetUtilization = [
+    { department: "IT", allocated: 5000000, utilized: 3750000 },
+    { department: "Marketing", allocated: 3000000, utilized: 2400000 },
+    { department: "Operations", allocated: 4000000, utilized: 3200000 },
+    { department: "HR", allocated: 1500000, utilized: 900000 },
+    { department: "Finance", allocated: 2000000, utilized: 1600000 },
+  ]
+
+  // No need to fetch - using local data
+
+  // Handlers
+  const handleRefresh = () => {
+    // Data is local, no need to refresh
+    console.log('Data refreshed (local)')
+  }
+
+  const handleViewAllExpiringContracts = () => {
+    router.push("/sourcing-contracts/contracts?status=Expiring Soon")
+  }
+
+  const handleDownloadCSV = (chartName: string, data: any[]) => {
+    const headers = Object.keys(data[0]).join(",")
+    const rows = data.map((row) => Object.values(row).join(",")).join("\n")
+    const csvContent = `${headers}\n${rows}`
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${chartName.toLowerCase().replace(/ /g, "-")}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleViewDetails = (chartName: string, data: any[]) => {
+    setSelectedChartData({ name: chartName, data })
+    setViewDetailsOpen(true)
+  }
+
+  const handleSetAlerts = (chartName: string) => {
+    setSelectedChartData({ name: chartName })
+    setSetAlertsOpen(true)
+  }
+
+  if (loading) {
+    return (
+      <SidebarInset>
+        <div className="flex h-full items-center justify-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </SidebarInset>
+    )
+  }
 
   return (
     <SidebarInset>
@@ -138,16 +215,36 @@ export default function Dashboard() {
               <SelectItem value="ytd">Year to Date</SelectItem>
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button size="sm" variant="outline">
+          <Button
+            size="sm"
+            variant={showFilters ? "default" : "outline"}
+            onClick={() => setShowFilters(!showFilters)}
+          >
             <Filter className="mr-2 h-4 w-4" />
             Filters
+            {showFilters && <X className="ml-2 h-4 w-4" />}
           </Button>
         </div>
       </div>
+
+      {showFilters && (
+        <div className="border-b bg-muted/50 p-4 md:px-8">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">Active Filters:</span>
+            <Badge variant="secondary">Timeframe: {timeframe}</Badge>
+            <Badge variant="secondary">Status: Active</Badge>
+            <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+              <X className="mr-2 h-4 w-4" />
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -156,13 +253,13 @@ export default function Dashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">165</div>
+              <div className="text-2xl font-bold">{stats?.activeContracts || 0}</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <ArrowUp className="mr-1 h-3 w-3" />
-                  10
+                  {stats?.totalContracts || 0}
                 </span>{" "}
-                YTD
+                Total
               </p>
             </CardContent>
           </Card>
@@ -172,13 +269,13 @@ export default function Dashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2009</div>
+              <div className="text-2xl font-bold">{stats?.totalSuppliers || 0}</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <ArrowUp className="mr-1 h-3 w-3" />
-                  289
+                  Active
                 </span>{" "}
-                YTD
+                Suppliers
               </p>
             </CardContent>
           </Card>
@@ -188,13 +285,13 @@ export default function Dashboard() {
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2400</div>
+              <div className="text-2xl font-bold">{stats?.icvCertifiedSuppliers || 0}</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <ArrowUp className="mr-1 h-3 w-3" />
-                  140
+                  Certified
                 </span>{" "}
-                YTD
+                Suppliers
               </p>
             </CardContent>
           </Card>
@@ -204,13 +301,13 @@ export default function Dashboard() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1242</div>
+              <div className="text-2xl font-bold">{stats?.isoCertifiedSuppliers || 0}</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <ArrowUp className="mr-1 h-3 w-3" />
-                  68
+                  Certified
                 </span>{" "}
-                YTD
+                Suppliers
               </p>
             </CardContent>
           </Card>
@@ -222,13 +319,13 @@ export default function Dashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1874</div>
+              <div className="text-2xl font-bold">{stats?.suppliersFromUAE || 0}</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <ArrowUp className="mr-1 h-3 w-3" />
-                  209
+                  Local
                 </span>{" "}
-                YTD
+                Suppliers
               </p>
             </CardContent>
           </Card>
@@ -238,7 +335,13 @@ export default function Dashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$21,260,445</div>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  maximumFractionDigits: 0,
+                }).format(stats?.totalSpend || 0)}
+              </div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-green-500 inline-flex items-center">
                   <ArrowUp className="mr-1 h-3 w-3" />
@@ -264,9 +367,22 @@ export default function Dashboard() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Download CSV</DropdownMenuItem>
-                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                  <DropdownMenuItem>Set Alerts</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleDownloadCSV("Spend Trend", spendTrend)}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleViewDetails("Spend Trend", spendTrend)}
+                  >
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSetAlerts("Spend Trend")}
+                  >
+                    Set Alerts
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </CardHeader>
@@ -345,7 +461,7 @@ export default function Dashboard() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
                     >
                       {spendByCategory.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -404,37 +520,59 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {upcomingContracts.map((contract) => (
-                  <div key={contract.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">{contract.supplier}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {contract.category} - {contract.id}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          {new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                            maximumFractionDigits: 0,
-                          }).format(contract.value)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(contract.expiryDate).toLocaleDateString()}
-                        </p>
+                {stats?.upcomingContracts && stats.upcomingContracts.length > 0 ? (
+                  stats.upcomingContracts.map((contract: any) => {
+                    const daysLeft = Math.ceil(
+                      (new Date(contract.endDate).getTime() - new Date().getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    )
+                    return (
+                      <div
+                        key={contract.id}
+                        className="flex items-center justify-between border-b pb-2 last:border-0"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {contract.supplierName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {contract.category} - {contract.id}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <p className="text-sm font-medium">
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                                maximumFractionDigits: 0,
+                              }).format(contract.value)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(contract.endDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Badge variant={daysLeft <= 30 ? "destructive" : "outline"}>
+                            {daysLeft} days
+                          </Badge>
+                        </div>
                       </div>
-                      <Badge variant={contract.daysLeft <= 30 ? "destructive" : "outline"}>
-                        {contract.daysLeft} days
-                      </Badge>
-                    </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    No contracts expiring soon
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleViewAllExpiringContracts}
+              >
                 <FileWarning className="mr-2 h-4 w-4" />
                 View All Expiring Contracts
               </Button>
@@ -497,10 +635,54 @@ export default function Dashboard() {
                 <CardTitle>Contract Type Distribution</CardTitle>
                 <CardDescription>Distribution of contracts by type</CardDescription>
               </div>
-              <Button variant="outline" size="icon" className="ml-auto">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="ml-auto">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleDownloadCSV("Contract Type Distribution", [
+                        { name: "Statement of Work", value: 60 },
+                        { name: "Services Agreement", value: 28 },
+                        { name: "Master Service", value: 22 },
+                        { name: "Licenses/Subscriptions", value: 18 },
+                        { name: "Lease Agreement", value: 10 },
+                        { name: "Purchase/Blanket", value: 9 },
+                        { name: "Warranty", value: 8 },
+                        { name: "Engagement Letter", value: 7 },
+                      ])
+                    }
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleViewDetails("Contract Type Distribution", [
+                        { name: "Statement of Work", value: 60 },
+                        { name: "Services Agreement", value: 28 },
+                        { name: "Master Service", value: 22 },
+                        { name: "Licenses/Subscriptions", value: 18 },
+                        { name: "Lease Agreement", value: 10 },
+                        { name: "Purchase/Blanket", value: 9 },
+                        { name: "Warranty", value: 8 },
+                        { name: "Engagement Letter", value: 7 },
+                      ])
+                    }
+                  >
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSetAlerts("Contract Type Distribution")}
+                  >
+                    Set Alerts
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -547,10 +729,60 @@ export default function Dashboard() {
                 <CardTitle>Deal Value by Category (USD)</CardTitle>
                 <CardDescription>Distribution of deal value across categories</CardDescription>
               </div>
-              <Button variant="outline" size="icon" className="ml-auto">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="ml-auto">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleDownloadCSV("Deal Value by Category", [
+                        { name: "Professional services", value: 160000000 },
+                        { name: "IT", value: 135000000 },
+                        { name: "Consultancy services", value: 100000000 },
+                        { name: "Professional services", value: 95000000 },
+                        { name: "Licenses", value: 85000000 },
+                        { name: "Leasing & rentals", value: 58000000 },
+                        { name: "Building facilities", value: 55000000 },
+                        { name: "General office", value: 25000000 },
+                        { name: "Food & beverage", value: 15000000 },
+                        { name: "Maintenance", value: 10000000 },
+                        { name: "Household", value: 5000000 },
+                      ])
+                    }
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleViewDetails("Deal Value by Category", [
+                        { name: "Professional services", value: 160000000 },
+                        { name: "IT", value: 135000000 },
+                        { name: "Consultancy services", value: 100000000 },
+                        { name: "Professional services", value: 95000000 },
+                        { name: "Licenses", value: 85000000 },
+                        { name: "Leasing & rentals", value: 58000000 },
+                        { name: "Building facilities", value: 55000000 },
+                        { name: "General office", value: 25000000 },
+                        { name: "Food & beverage", value: 15000000 },
+                        { name: "Maintenance", value: 10000000 },
+                        { name: "Household", value: 5000000 },
+                      ])
+                    }
+                  >
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSetAlerts("Deal Value by Category")}
+                  >
+                    Set Alerts
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -621,10 +853,64 @@ export default function Dashboard() {
                 <CardTitle>Jurisdiction Distribution</CardTitle>
                 <CardDescription>Distribution of contracts by jurisdiction</CardDescription>
               </div>
-              <Button variant="outline" size="icon" className="ml-auto">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="ml-auto">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleDownloadCSV("Jurisdiction Distribution", [
+                        {
+                          name: "Abu Dhabi Global Markets, United Arab Emirates",
+                          value: 35,
+                        },
+                        { name: "United Arab Emirates", value: 25 },
+                        { name: "Abu Dhabi, United Arab Emirates", value: 20 },
+                        { name: "Abu Dhabi", value: 15 },
+                        { name: "United Kingdom", value: 10 },
+                        { name: "United States", value: 5 },
+                        { name: "Dubai, United Arab Emirates", value: 4 },
+                        { name: "Ireland", value: 3 },
+                        { name: "Federal Laws of the UAE", value: 2 },
+                        { name: "Spain", value: 1 },
+                      ])
+                    }
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleViewDetails("Jurisdiction Distribution", [
+                        {
+                          name: "Abu Dhabi Global Markets, United Arab Emirates",
+                          value: 35,
+                        },
+                        { name: "United Arab Emirates", value: 25 },
+                        { name: "Abu Dhabi, United Arab Emirates", value: 20 },
+                        { name: "Abu Dhabi", value: 15 },
+                        { name: "United Kingdom", value: 10 },
+                        { name: "United States", value: 5 },
+                        { name: "Dubai, United Arab Emirates", value: 4 },
+                        { name: "Ireland", value: 3 },
+                        { name: "Federal Laws of the UAE", value: 2 },
+                        { name: "Spain", value: 1 },
+                      ])
+                    }
+                  >
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSetAlerts("Jurisdiction Distribution")}
+                  >
+                    Set Alerts
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -649,7 +935,7 @@ export default function Dashboard() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => (percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : "")}
+                      label={({ name, percent }) => (percent && percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : "")}
                     >
                       {[
                         { color: "#74c0fc" },
@@ -679,10 +965,48 @@ export default function Dashboard() {
                 <CardTitle>Contracts Fulfilling Requirements</CardTitle>
                 <CardDescription>Number of contracts meeting specific requirements</CardDescription>
               </div>
-              <Button variant="outline" size="icon" className="ml-auto">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="ml-auto">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleDownloadCSV("Contracts Fulfilling Requirements", [
+                        { subject: "Has Local Supplier", A: 360 },
+                        { subject: "Has Indemnity", A: 300 },
+                        { subject: "Renewal Clause", A: 280 },
+                        { subject: "Termination Clause", A: 340 },
+                        { subject: "Signed By CEO", A: 220 },
+                      ])
+                    }
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleViewDetails("Contracts Fulfilling Requirements", [
+                        { subject: "Has Local Supplier", A: 360 },
+                        { subject: "Has Indemnity", A: 300 },
+                        { subject: "Renewal Clause", A: 280 },
+                        { subject: "Termination Clause", A: 340 },
+                        { subject: "Signed By CEO", A: 220 },
+                      ])
+                    }
+                  >
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleSetAlerts("Contracts Fulfilling Requirements")}
+                  >
+                    Set Alerts
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -711,6 +1035,60 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+
+      {/* View Details Dialog */}
+      <Dialog open={viewDetailsOpen} onOpenChange={setViewDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[600px] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedChartData?.name}</DialogTitle>
+            <DialogDescription>
+              Detailed view of the {selectedChartData?.name} data
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <pre className="text-xs bg-muted p-4 rounded-md overflow-auto">
+              {JSON.stringify(selectedChartData?.data, null, 2)}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Alerts Dialog */}
+      <Dialog open={setAlertsOpen} onOpenChange={setSetAlertsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set Alerts for {selectedChartData?.name}</DialogTitle>
+            <DialogDescription>
+              Configure alerts for {selectedChartData?.name} changes
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Alert Threshold</label>
+              <select className="w-full p-2 border rounded-md">
+                <option>When value increases by 10%</option>
+                <option>When value increases by 20%</option>
+                <option>When value decreases by 10%</option>
+                <option>When value decreases by 20%</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notification Frequency</label>
+              <select className="w-full p-2 border rounded-md">
+                <option>Immediately</option>
+                <option>Daily digest</option>
+                <option>Weekly digest</option>
+              </select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setSetAlertsOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => setSetAlertsOpen(false)}>Save Alert</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarInset>
   )
 }

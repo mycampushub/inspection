@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Fragment } from "react"
+import { useRouter } from "next/navigation"
+import { localCategories } from "@/lib/local-data"
 import {
   ChevronDown,
   ChevronRight,
@@ -10,7 +12,9 @@ import {
   MoreHorizontal,
   Plus,
   Search,
+  Trash2,
   Users,
+  X,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -35,7 +39,6 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import {
   Bar,
@@ -53,259 +56,28 @@ import {
 } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
-// Sample data for categories
-const categoryData = [
-  {
-    id: 1,
-    name: "IT Equipment",
-    description: "Computer hardware, software, and peripherals",
-    spend: 4250000,
-    suppliers: 42,
-    contracts: 18,
-    subcategories: [
-      {
-        id: 11,
-        name: "Hardware",
-        description: "Physical computing devices",
-        spend: 2800000,
-        suppliers: 24,
-        contracts: 10,
-      },
-      {
-        id: 12,
-        name: "Software",
-        description: "Applications and operating systems",
-        spend: 950000,
-        suppliers: 15,
-        contracts: 6,
-      },
-      {
-        id: 13,
-        name: "Peripherals",
-        description: "External devices and accessories",
-        spend: 500000,
-        suppliers: 8,
-        contracts: 2,
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Office Supplies",
-    description: "Stationery, paper products, and office consumables",
-    spend: 1250000,
-    suppliers: 28,
-    contracts: 12,
-    subcategories: [
-      {
-        id: 21,
-        name: "Stationery",
-        description: "Pens, pencils, and writing materials",
-        spend: 450000,
-        suppliers: 12,
-        contracts: 5,
-      },
-      {
-        id: 22,
-        name: "Paper Products",
-        description: "Printing paper, notebooks, and notepads",
-        spend: 550000,
-        suppliers: 8,
-        contracts: 4,
-      },
-      {
-        id: 23,
-        name: "Office Consumables",
-        description: "Toner, ink, and other consumable items",
-        spend: 250000,
-        suppliers: 10,
-        contracts: 3,
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "Professional Services",
-    description: "Consulting, legal, and other professional services",
-    spend: 3850000,
-    suppliers: 35,
-    contracts: 22,
-    subcategories: [
-      {
-        id: 31,
-        name: "Consulting",
-        description: "Business and management consulting",
-        spend: 2200000,
-        suppliers: 18,
-        contracts: 12,
-      },
-      {
-        id: 32,
-        name: "Legal Services",
-        description: "Legal advice and representation",
-        spend: 950000,
-        suppliers: 8,
-        contracts: 6,
-      },
-      {
-        id: 33,
-        name: "Financial Services",
-        description: "Accounting, auditing, and financial advisory",
-        spend: 700000,
-        suppliers: 9,
-        contracts: 4,
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: "Facilities",
-    description: "Building maintenance, utilities, and facility services",
-    spend: 2950000,
-    suppliers: 32,
-    contracts: 15,
-    subcategories: [
-      {
-        id: 41,
-        name: "Maintenance",
-        description: "Building repairs and maintenance",
-        spend: 1200000,
-        suppliers: 14,
-        contracts: 6,
-      },
-      {
-        id: 42,
-        name: "Utilities",
-        description: "Electricity, water, and other utilities",
-        spend: 1050000,
-        suppliers: 8,
-        contracts: 5,
-      },
-      {
-        id: 43,
-        name: "Security",
-        description: "Security services and equipment",
-        spend: 700000,
-        suppliers: 10,
-        contracts: 4,
-      },
-    ],
-  },
-  {
-    id: 5,
-    name: "Marketing",
-    description: "Advertising, promotions, and marketing services",
-    spend: 1850000,
-    suppliers: 25,
-    contracts: 14,
-    subcategories: [
-      {
-        id: 51,
-        name: "Advertising",
-        description: "Print, digital, and media advertising",
-        spend: 850000,
-        suppliers: 12,
-        contracts: 6,
-      },
-      {
-        id: 52,
-        name: "Digital Marketing",
-        description: "SEO, social media, and online marketing",
-        spend: 650000,
-        suppliers: 8,
-        contracts: 5,
-      },
-      {
-        id: 53,
-        name: "Events",
-        description: "Trade shows, conferences, and corporate events",
-        spend: 350000,
-        suppliers: 5,
-        contracts: 3,
-      },
-    ],
-  },
-]
+// Types
+interface Category {
+  id: number
+  name: string
+  description: string
+  spend: number
+  suppliers: number
+  contracts: number
+  categoryManager?: string
+  lastUpdated?: string
+  tags?: string[]
+  subcategories: Subcategory[]
+}
 
-// Sample data for charts
-const categorySpendData = [
-  { name: "IT Equipment", value: 4250000 },
-  { name: "Office Supplies", value: 1250000 },
-  { name: "Professional Services", value: 3850000 },
-  { name: "Facilities", value: 2950000 },
-  { name: "Marketing", value: 1850000 },
-]
-
-const categorySupplierData = [
-  { name: "IT Equipment", suppliers: 42 },
-  { name: "Office Supplies", suppliers: 28 },
-  { name: "Professional Services", suppliers: 35 },
-  { name: "Facilities", suppliers: 32 },
-  { name: "Marketing", suppliers: 25 },
-]
-
-const categoryTrendData = [
-  {
-    month: "Jan",
-    "IT Equipment": 320000,
-    "Office Supplies": 95000,
-    "Professional Services": 280000,
-    Facilities: 230000,
-    Marketing: 140000,
-  },
-  {
-    month: "Feb",
-    "IT Equipment": 340000,
-    "Office Supplies": 100000,
-    "Professional Services": 310000,
-    Facilities: 240000,
-    Marketing: 150000,
-  },
-  {
-    month: "Mar",
-    "IT Equipment": 360000,
-    "Office Supplies": 110000,
-    "Professional Services": 330000,
-    Facilities: 250000,
-    Marketing: 160000,
-  },
-  {
-    month: "Apr",
-    "IT Equipment": 380000,
-    "Office Supplies": 105000,
-    "Professional Services": 320000,
-    Facilities: 260000,
-    Marketing: 155000,
-  },
-  {
-    month: "May",
-    "IT Equipment": 400000,
-    "Office Supplies": 115000,
-    "Professional Services": 340000,
-    Facilities: 270000,
-    Marketing: 165000,
-  },
-  {
-    month: "Jun",
-    "IT Equipment": 420000,
-    "Office Supplies": 120000,
-    "Professional Services": 350000,
-    Facilities: 280000,
-    Marketing: 170000,
-  },
-]
-
-const supplierDistributionData = [
-  { name: "Strategic", value: 25 },
-  { name: "Preferred", value: 42 },
-  { name: "Tactical", value: 95 },
-]
-
-const riskDistributionData = [
-  { name: "High", value: 18 },
-  { name: "Medium", value: 35 },
-  { name: "Low", value: 109 },
-]
+interface Subcategory {
+  id: number
+  name: string
+  description: string
+  spend: number
+  suppliers: number
+  contracts: number
+}
 
 // Colors for charts
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"]
@@ -327,55 +99,371 @@ const formatNumber = (value: number) => {
 }
 
 export default function CategoryManagement() {
+  const router = useRouter()
+  
+  // State
+  const [categories, setCategories] = useState<Category[]>(localCategories)
+  const [isLoading, setIsLoading] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<number[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
+  
+  // Dialog states
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<any>(null)
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false)
   const [isAddSubcategoryOpen, setIsAddSubcategoryOpen] = useState(false)
+  const [isEditSubcategoryOpen, setIsEditSubcategoryOpen] = useState(false)
+  const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false)
+  const [isDeleteSubcategoryOpen, setIsDeleteSubcategoryOpen] = useState(false)
+  const [isViewSubcategoryDetailsOpen, setIsViewSubcategoryDetailsOpen] = useState(false)
+  
+  // Selected items
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [selectedSubcategory, setSelectedSubcategory] = useState<Subcategory | null>(null)
+  
+  // Form states
+  const [addCategoryForm, setAddCategoryForm] = useState({
+    name: "",
+    description: "",
+    categoryManager: "",
+    tags: "",
+  })
+  const [editCategoryForm, setEditCategoryForm] = useState({
+    name: "",
+    description: "",
+    categoryManager: "",
+    tags: "",
+  })
+  const [addSubcategoryForm, setAddSubcategoryForm] = useState({
+    name: "",
+    description: "",
+    spend: "",
+    suppliers: "",
+    contracts: "",
+  })
+  const [editSubcategoryForm, setEditSubcategoryForm] = useState({
+    name: "",
+    description: "",
+    spend: "",
+    suppliers: "",
+    contracts: "",
+  })
 
-  // Total spend across all categories
-  const totalSpend = categoryData.reduce((sum, category) => sum + category.spend, 0)
-
-  // Total suppliers across all categories (note: this might count duplicates)
-  const totalSuppliers = categoryData.reduce((sum, category) => sum + category.suppliers, 0)
-
-  // Total contracts across all categories
-  const totalContracts = categoryData.reduce((sum, category) => sum + category.contracts, 0)
-
-  // Toggle category expansion
-  const toggleCategory = (categoryId: number) => {
-    if (expandedCategories.includes(categoryId)) {
-      setExpandedCategories(expandedCategories.filter((id) => id !== categoryId))
+  // No need to fetch - using local data
+  const fetchCategories = () => {
+    // Filter local data based on search term
+    if (searchTerm) {
+      const filtered = localCategories.filter(cat => 
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cat.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      setCategories(filtered)
     } else {
-      setExpandedCategories([...expandedCategories, categoryId])
+      setCategories(localCategories)
     }
   }
 
-  // Filter categories based on search term
-  const filteredCategories = categoryData.filter(
-    (category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  // Fetch category by ID
+  const fetchCategory = async (id: number) => {
+    try {
+      const response = await fetch(`/api/categories/${id}`)
+      const data = await response.json()
+      if (data.success) {
+        return data.data
+      }
+    } catch (error) {
+      console.error("Failed to fetch category:", error)
+    }
+    return null
+  }
 
-  // Handle category selection for details view
-  const handleCategorySelect = (category: any) => {
+  // Create category
+  const createCategory = async () => {
+    try {
+      const tags = addCategoryForm.tags ? addCategoryForm.tags.split(",").map((t) => t.trim()) : []
+      const response = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: addCategoryForm.name,
+          description: addCategoryForm.description,
+          categoryManager: addCategoryForm.categoryManager || undefined,
+          tags,
+          spend: 0,
+          suppliers: 0,
+          contracts: 0,
+        }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setIsAddCategoryOpen(false)
+        setAddCategoryForm({ name: "", description: "", categoryManager: "", tags: "" })
+        fetchCategories()
+      }
+    } catch (error) {
+      console.error("Failed to create category:", error)
+    }
+  }
+
+  // Update category
+  const updateCategory = async () => {
+    if (!selectedCategory) return
+    try {
+      const tags = editCategoryForm.tags ? editCategoryForm.tags.split(",").map((t) => t.trim()) : []
+      const response = await fetch(`/api/categories/${selectedCategory.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editCategoryForm.name,
+          description: editCategoryForm.description,
+          categoryManager: editCategoryForm.categoryManager || undefined,
+          tags,
+        }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setIsEditCategoryOpen(false)
+        fetchCategories()
+        const updatedCategory = await fetchCategory(selectedCategory.id)
+        if (updatedCategory) {
+          setSelectedCategory(updatedCategory)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update category:", error)
+    }
+  }
+
+  // Delete category
+  const deleteCategory = async () => {
+    if (!selectedCategory) return
+    try {
+      const response = await fetch(`/api/categories/${selectedCategory.id}`, {
+        method: "DELETE",
+      })
+      const data = await response.json()
+      if (data.success) {
+        setIsDeleteCategoryOpen(false)
+        setSelectedCategory(null)
+        setActiveTab("overview")
+        fetchCategories()
+      }
+    } catch (error) {
+      console.error("Failed to delete category:", error)
+    }
+  }
+
+  // Create subcategory
+  const createSubcategory = async () => {
+    if (!selectedCategory) return
+    try {
+      const response = await fetch(`/api/categories/${selectedCategory.id}/subcategories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: addSubcategoryForm.name,
+          description: addSubcategoryForm.description,
+          spend: parseFloat(addSubcategoryForm.spend) || 0,
+          suppliers: parseInt(addSubcategoryForm.suppliers) || 0,
+          contracts: parseInt(addSubcategoryForm.contracts) || 0,
+        }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setIsAddSubcategoryOpen(false)
+        setAddSubcategoryForm({ name: "", description: "", spend: "", suppliers: "", contracts: "" })
+        fetchCategories()
+        const updatedCategory = await fetchCategory(selectedCategory.id)
+        if (updatedCategory) {
+          setSelectedCategory(updatedCategory)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to create subcategory:", error)
+    }
+  }
+
+  // Update subcategory
+  const updateSubcategory = async () => {
+    if (!selectedCategory || !selectedSubcategory) return
+    try {
+      const response = await fetch(
+        `/api/categories/${selectedCategory.id}/subcategories/${selectedSubcategory.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: editSubcategoryForm.name,
+            description: editSubcategoryForm.description,
+            spend: parseFloat(editSubcategoryForm.spend) || 0,
+            suppliers: parseInt(editSubcategoryForm.suppliers) || 0,
+            contracts: parseInt(editSubcategoryForm.contracts) || 0,
+          }),
+        }
+      )
+      const data = await response.json()
+      if (data.success) {
+        setIsEditSubcategoryOpen(false)
+        fetchCategories()
+        const updatedCategory = await fetchCategory(selectedCategory.id)
+        if (updatedCategory) {
+          setSelectedCategory(updatedCategory)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update subcategory:", error)
+    }
+  }
+
+  // Delete subcategory
+  const deleteSubcategory = async () => {
+    if (!selectedCategory || !selectedSubcategory) return
+    try {
+      const response = await fetch(
+        `/api/categories/${selectedCategory.id}/subcategories/${selectedSubcategory.id}`,
+        {
+          method: "DELETE",
+        }
+      )
+      const data = await response.json()
+      if (data.success) {
+        setIsDeleteSubcategoryOpen(false)
+        setSelectedSubcategory(null)
+        fetchCategories()
+        const updatedCategory = await fetchCategory(selectedCategory.id)
+        if (updatedCategory) {
+          setSelectedCategory(updatedCategory)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete subcategory:", error)
+    }
+  }
+
+  // Effects - update categories when search term changes
+  useEffect(() => {
+    fetchCategories()
+  }, [searchTerm])
+
+  // Calculate totals
+  const totalSpend = categories.reduce((sum, category) => sum + category.spend, 0)
+  const totalSuppliers = categories.reduce((sum, category) => sum + category.suppliers, 0)
+  const totalContracts = categories.reduce((sum, category) => sum + category.contracts, 0)
+
+  // Chart data
+  const categorySpendData = categories.map((cat) => ({ name: cat.name, value: cat.spend }))
+  const categorySupplierData = categories.map((cat) => ({ name: cat.name, suppliers: cat.suppliers }))
+  
+  const categoryTrendData = [
+    { month: "Jan", ...categories.reduce((acc, cat) => ({ ...acc, [cat.name]: cat.spend / 12 }), {}) },
+    { month: "Feb", ...categories.reduce((acc, cat) => ({ ...acc, [cat.name]: cat.spend / 12 }), {}) },
+    { month: "Mar", ...categories.reduce((acc, cat) => ({ ...acc, [cat.name]: cat.spend / 12 }), {}) },
+    { month: "Apr", ...categories.reduce((acc, cat) => ({ ...acc, [cat.name]: cat.spend / 12 }), {}) },
+    { month: "May", ...categories.reduce((acc, cat) => ({ ...acc, [cat.name]: cat.spend / 12 }), {}) },
+    { month: "Jun", ...categories.reduce((acc, cat) => ({ ...acc, [cat.name]: cat.spend / 12 }), {}) },
+  ]
+
+  const supplierDistributionData = [
+    { name: "Strategic", value: categories.filter((c) => c.categoryManager).length },
+    { name: "Preferred", value: Math.floor(categories.length * 0.6) },
+    { name: "Tactical", value: Math.floor(categories.length * 0.3) },
+  ]
+
+  const riskDistributionData = [
+    { name: "High", value: 1 },
+    { name: "Medium", value: 2 },
+    { name: "Low", value: categories.length - 3 },
+  ]
+
+  // Handlers
+  const toggleCategory = (categoryId: number) => {
+    setExpandedCategories((prev) =>
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
+    )
+  }
+
+  const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category)
     setActiveTab("details")
   }
 
-  // Custom tooltip formatter for charts
-  const currencyTooltipFormatter = (value: number) => formatCurrency(value)
-  const supplierTooltipFormatter = (value: number) => `${value} suppliers`
+  const handleAddCategoryClick = () => {
+    setAddCategoryForm({ name: "", description: "", categoryManager: "", tags: "" })
+    setIsAddCategoryOpen(true)
+  }
+
+  const handleEditCategoryClick = (category: Category) => {
+    setSelectedCategory(category)
+    setEditCategoryForm({
+      name: category.name,
+      description: category.description,
+      categoryManager: category.categoryManager || "",
+      tags: category.tags?.join(", ") || "",
+    })
+    setIsEditCategoryOpen(true)
+  }
+
+  const handleAddSubcategoryClick = (category: Category) => {
+    setSelectedCategory(category)
+    setAddSubcategoryForm({ name: "", description: "", spend: "", suppliers: "", contracts: "" })
+    setIsAddSubcategoryOpen(true)
+  }
+
+  const handleDeleteCategoryClick = (category: Category) => {
+    setSelectedCategory(category)
+    setIsDeleteCategoryOpen(true)
+  }
+
+  const handleEditSubcategoryClick = (category: Category, subcategory: Subcategory) => {
+    setSelectedCategory(category)
+    setSelectedSubcategory(subcategory)
+    setEditSubcategoryForm({
+      name: subcategory.name,
+      description: subcategory.description,
+      spend: subcategory.spend.toString(),
+      suppliers: subcategory.suppliers.toString(),
+      contracts: subcategory.contracts.toString(),
+    })
+    setIsEditSubcategoryOpen(true)
+  }
+
+  const handleViewSubcategoryDetailsClick = (category: Category, subcategory: Subcategory) => {
+    setSelectedCategory(category)
+    setSelectedSubcategory(subcategory)
+    setIsViewSubcategoryDetailsOpen(true)
+  }
+
+  const handleDeleteSubcategoryClick = (category: Category, subcategory: Subcategory) => {
+    setSelectedCategory(category)
+    setSelectedSubcategory(subcategory)
+    setIsDeleteSubcategoryOpen(true)
+  }
+
+  const handleViewSuppliers = (category: Category) => {
+    router.push(`/supplier-management/directory?category=${encodeURIComponent(category.name)}`)
+  }
+
+  const handleViewContracts = (category: Category) => {
+    router.push(`/sourcing-contracts/contracts?category=${encodeURIComponent(category.name)}`)
+  }
+
+  const currencyTooltipFormatter = (value: number | undefined) => formatCurrency(value || 0)
+  const supplierTooltipFormatter = (value: number | undefined) => `${value || 0} suppliers`
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-muted-foreground">Loading categories...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Category Management</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setIsAddCategoryOpen(true)}>
+          <Button variant="outline" onClick={handleAddCategoryClick}>
             <Plus className="h-4 w-4 mr-2" />
             Add Category
           </Button>
@@ -388,9 +476,9 @@ export default function CategoryManagement() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Categories</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categoryData.length}</div>
+            <div className="text-2xl font-bold">{categories.length}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {categoryData.reduce((sum, cat) => sum + (cat.subcategories?.length || 0), 0)} subcategories
+              {categories.reduce((sum, cat) => sum + (cat.subcategories?.length || 0), 0)} subcategories
             </p>
           </CardContent>
         </Card>
@@ -441,7 +529,7 @@ export default function CategoryManagement() {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -488,49 +576,28 @@ export default function CategoryManagement() {
             <CardContent>
               <div className="h-80">
                 <ChartContainer
-                  config={{
-                    "IT Equipment": {
-                      label: "IT Equipment",
-                      color: "hsl(var(--chart-1))",
+                  config={categories.reduce((config, cat, idx) => ({
+                    ...config,
+                    [cat.name]: {
+                      label: cat.name,
+                      color: `hsl(var(--chart-${(idx % 5) + 1}))`,
                     },
-                    "Office Supplies": {
-                      label: "Office Supplies",
-                      color: "hsl(var(--chart-2))",
-                    },
-                    "Professional Services": {
-                      label: "Professional Services",
-                      color: "hsl(var(--chart-3))",
-                    },
-                    Facilities: {
-                      label: "Facilities",
-                      color: "hsl(var(--chart-4))",
-                    },
-                    Marketing: {
-                      label: "Marketing",
-                      color: "hsl(var(--chart-5))",
-                    },
-                  }}
+                  }), {} as any)}
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={categoryTrendData}>
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="IT Equipment" stroke="var(--color-IT Equipment)" strokeWidth={2} />
-                      <Line
-                        type="monotone"
-                        dataKey="Office Supplies"
-                        stroke="var(--color-Office Supplies)"
-                        strokeWidth={2}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Professional Services"
-                        stroke="var(--color-Professional Services)"
-                        strokeWidth={2}
-                      />
-                      <Line type="monotone" dataKey="Facilities" stroke="var(--color-Facilities)" strokeWidth={2} />
-                      <Line type="monotone" dataKey="Marketing" stroke="var(--color-Marketing)" strokeWidth={2} />
+                      {categories.map((cat, idx) => (
+                        <Line
+                          key={cat.id}
+                          type="monotone"
+                          dataKey={cat.name}
+                          stroke={`hsl(var(--chart-${(idx % 5) + 1}))`}
+                          strokeWidth={2}
+                        />
+                      ))}
                       <Legend />
                     </LineChart>
                   </ResponsiveContainer>
@@ -556,7 +623,7 @@ export default function CategoryManagement() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
                         {supplierDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -586,7 +653,7 @@ export default function CategoryManagement() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
                         {riskDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={RISK_COLORS[index % RISK_COLORS.length]} />
@@ -636,16 +703,16 @@ export default function CategoryManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCategories.length === 0 ? (
+                    {categories.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No categories found matching your search.
+                          No categories found.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredCategories.map((category) => (
-                        <>
-                          <TableRow key={category.id} className="cursor-pointer hover:bg-muted/50">
+                      categories.map((category) => (
+                        <Fragment key={category.id}>
+                          <TableRow className="cursor-pointer hover:bg-muted/50">
                             <TableCell className="font-medium" onClick={() => toggleCategory(category.id)}>
                               <div className="flex items-center">
                                 {expandedCategories.includes(category.id) ? (
@@ -672,24 +739,19 @@ export default function CategoryManagement() {
                                   <DropdownMenuItem onClick={() => handleCategorySelect(category)}>
                                     View Details
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedCategory(category)
-                                      setIsEditCategoryOpen(true)
-                                    }}
-                                  >
+                                  <DropdownMenuItem onClick={() => handleEditCategoryClick(category)}>
                                     Edit Category
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedCategory(category)
-                                      setIsAddSubcategoryOpen(true)
-                                    }}
-                                  >
+                                  <DropdownMenuItem onClick={() => handleAddSubcategoryClick(category)}>
                                     Add Subcategory
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive">Delete Category</DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteCategoryClick(category)}
+                                    className="text-destructive"
+                                  >
+                                    Delete Category
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
@@ -713,10 +775,21 @@ export default function CategoryManagement() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                                      <DropdownMenuItem>Edit Subcategory</DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => handleViewSubcategoryDetailsClick(category, subcategory)}
+                                      >
+                                        View Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => handleEditSubcategoryClick(category, subcategory)}
+                                      >
+                                        Edit Subcategory
+                                      </DropdownMenuItem>
                                       <DropdownMenuSeparator />
-                                      <DropdownMenuItem className="text-destructive">
+                                      <DropdownMenuItem
+                                        onClick={() => handleDeleteSubcategoryClick(category, subcategory)}
+                                        className="text-destructive"
+                                      >
                                         Delete Subcategory
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -724,7 +797,7 @@ export default function CategoryManagement() {
                                 </TableCell>
                               </TableRow>
                             ))}
-                        </>
+                        </Fragment>
                       ))
                     )}
                   </TableBody>
@@ -741,11 +814,15 @@ export default function CategoryManagement() {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">{selectedCategory.name}</h2>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setIsEditCategoryOpen(true)}>
+                  <Button variant="outline" size="sm" onClick={() => handleEditCategoryClick(selectedCategory)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Category
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setIsAddSubcategoryOpen(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddSubcategoryClick(selectedCategory)}
+                  >
                     <FolderPlus className="h-4 w-4 mr-2" />
                     Add Subcategory
                   </Button>
@@ -772,7 +849,12 @@ export default function CategoryManagement() {
                   <CardContent>
                     <div className="text-2xl font-bold">{selectedCategory.suppliers}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => handleViewSuppliers(selectedCategory)}
+                      >
                         <Users className="h-3 w-3 mr-1" />
                         View Suppliers
                       </Button>
@@ -786,7 +868,12 @@ export default function CategoryManagement() {
                   <CardContent>
                     <div className="text-2xl font-bold">{selectedCategory.contracts}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => handleViewContracts(selectedCategory)}
+                      >
                         <FilePlus className="h-3 w-3 mr-1" />
                         View Contracts
                       </Button>
@@ -808,18 +895,24 @@ export default function CategoryManagement() {
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-1">Category Manager</h4>
-                        <p>John Smith</p>
+                        <p>{selectedCategory.categoryManager || "Not assigned"}</p>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-1">Last Updated</h4>
-                        <p>April 15, 2023</p>
+                        <p>{selectedCategory.lastUpdated || "Unknown"}</p>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-1">Tags</h4>
                         <div className="flex flex-wrap gap-2 mt-1">
-                          <Badge variant="outline">Strategic</Badge>
-                          <Badge variant="outline">High Value</Badge>
-                          <Badge variant="outline">Core Business</Badge>
+                          {selectedCategory.tags && selectedCategory.tags.length > 0 ? (
+                            selectedCategory.tags.map((tag, idx) => (
+                              <Badge key={idx} variant="outline">
+                                {tag}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No tags</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -831,8 +924,8 @@ export default function CategoryManagement() {
                   </CardHeader>
                   <CardContent>
                     {selectedCategory.subcategories?.length > 0 ? (
-                      <div className="space-y-4">
-                        {selectedCategory.subcategories.map((subcategory: any) => (
+                      <div className="space-y-4 max-h-96 overflow-y-auto">
+                        {selectedCategory.subcategories.map((subcategory) => (
                           <div key={subcategory.id} className="border rounded-md p-3">
                             <div className="flex justify-between items-start">
                               <div>
@@ -846,10 +939,23 @@ export default function CategoryManagement() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>Edit Subcategory</DropdownMenuItem>
-                                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleViewSubcategoryDetailsClick(selectedCategory, subcategory)}
+                                  >
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleEditSubcategoryClick(selectedCategory, subcategory)}
+                                  >
+                                    Edit Subcategory
+                                  </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive">Delete Subcategory</DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteSubcategoryClick(selectedCategory, subcategory)}
+                                    className="text-destructive"
+                                  >
+                                    Delete Subcategory
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
@@ -877,7 +983,7 @@ export default function CategoryManagement() {
                           variant="outline"
                           size="sm"
                           className="mt-2"
-                          onClick={() => setIsAddSubcategoryOpen(true)}
+                          onClick={() => handleAddSubcategoryClick(selectedCategory)}
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Add Subcategory
@@ -941,7 +1047,7 @@ export default function CategoryManagement() {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: { name: string; percent?: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -974,7 +1080,7 @@ export default function CategoryManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {categoryData.map((category) => (
+                    {categories.map((category) => (
                       <TableRow key={category.id}>
                         <TableCell className="font-medium">{category.name}</TableCell>
                         <TableCell className="text-right">{formatCurrency(category.spend)}</TableCell>
@@ -983,7 +1089,7 @@ export default function CategoryManagement() {
                         </TableCell>
                         <TableCell className="text-right">{category.suppliers}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(category.spend / category.suppliers)}
+                          {category.suppliers > 0 ? formatCurrency(category.spend / category.suppliers) : "$0"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1000,49 +1106,28 @@ export default function CategoryManagement() {
             <CardContent>
               <div className="h-80">
                 <ChartContainer
-                  config={{
-                    "IT Equipment": {
-                      label: "IT Equipment",
-                      color: "hsl(var(--chart-1))",
+                  config={categories.reduce((config, cat, idx) => ({
+                    ...config,
+                    [cat.name]: {
+                      label: cat.name,
+                      color: `hsl(var(--chart-${(idx % 5) + 1}))`,
                     },
-                    "Office Supplies": {
-                      label: "Office Supplies",
-                      color: "hsl(var(--chart-2))",
-                    },
-                    "Professional Services": {
-                      label: "Professional Services",
-                      color: "hsl(var(--chart-3))",
-                    },
-                    Facilities: {
-                      label: "Facilities",
-                      color: "hsl(var(--chart-4))",
-                    },
-                    Marketing: {
-                      label: "Marketing",
-                      color: "hsl(var(--chart-5))",
-                    },
-                  }}
+                  }), {} as any)}
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={categoryTrendData}>
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="IT Equipment" stroke="var(--color-IT Equipment)" strokeWidth={2} />
-                      <Line
-                        type="monotone"
-                        dataKey="Office Supplies"
-                        stroke="var(--color-Office Supplies)"
-                        strokeWidth={2}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="Professional Services"
-                        stroke="var(--color-Professional Services)"
-                        strokeWidth={2}
-                      />
-                      <Line type="monotone" dataKey="Facilities" stroke="var(--color-Facilities)" strokeWidth={2} />
-                      <Line type="monotone" dataKey="Marketing" stroke="var(--color-Marketing)" strokeWidth={2} />
+                      {categories.map((cat, idx) => (
+                        <Line
+                          key={cat.id}
+                          type="monotone"
+                          dataKey={cat.name}
+                          stroke={`hsl(var(--chart-${(idx % 5) + 1}))`}
+                          strokeWidth={2}
+                        />
+                      ))}
                       <Legend />
                     </LineChart>
                   </ResponsiveContainer>
@@ -1055,125 +1140,334 @@ export default function CategoryManagement() {
 
       {/* Add Category Dialog */}
       <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
-            <DialogDescription>Create a new procurement category to organize your spend.</DialogDescription>
+            <DialogDescription>Create a new procurement category</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Category Name</Label>
-              <Input id="name" placeholder="Enter category name" />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="add-name">Name *</Label>
+              <Input
+                id="add-name"
+                value={addCategoryForm.name}
+                onChange={(e) => setAddCategoryForm({ ...addCategoryForm, name: e.target.value })}
+                placeholder="Category name"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" placeholder="Enter category description" />
+            <div className="space-y-2">
+              <Label htmlFor="add-description">Description *</Label>
+              <Textarea
+                id="add-description"
+                value={addCategoryForm.description}
+                onChange={(e) => setAddCategoryForm({ ...addCategoryForm, description: e.target.value })}
+                placeholder="Category description"
+                rows={3}
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="manager">Category Manager</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a manager" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="john-smith">John Smith</SelectItem>
-                  <SelectItem value="sarah-johnson">Sarah Johnson</SelectItem>
-                  <SelectItem value="michael-brown">Michael Brown</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-2">
+              <Label htmlFor="add-manager">Category Manager</Label>
+              <Input
+                id="add-manager"
+                value={addCategoryForm.categoryManager}
+                onChange={(e) => setAddCategoryForm({ ...addCategoryForm, categoryManager: e.target.value })}
+                placeholder="Manager name"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="tags">Tags</Label>
-              <Input id="tags" placeholder="Enter tags separated by commas" />
+            <div className="space-y-2">
+              <Label htmlFor="add-tags">Tags (comma-separated)</Label>
+              <Input
+                id="add-tags"
+                value={addCategoryForm.tags}
+                onChange={(e) => setAddCategoryForm({ ...addCategoryForm, tags: e.target.value })}
+                placeholder="e.g., Strategic, High Value, Core Business"
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsAddCategoryOpen(false)}>Create Category</Button>
+            <Button onClick={createCategory} disabled={!addCategoryForm.name || !addCategoryForm.description}>
+              Create Category
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Category Dialog */}
       <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>Update the details for {selectedCategory?.name}.</DialogDescription>
+            <DialogDescription>Update category information</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-name">Category Name</Label>
-              <Input id="edit-name" defaultValue={selectedCategory?.name} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name *</Label>
+              <Input
+                id="edit-name"
+                value={editCategoryForm.name}
+                onChange={(e) => setEditCategoryForm({ ...editCategoryForm, name: e.target.value })}
+                placeholder="Category name"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea id="edit-description" defaultValue={selectedCategory?.description} />
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description *</Label>
+              <Textarea
+                id="edit-description"
+                value={editCategoryForm.description}
+                onChange={(e) => setEditCategoryForm({ ...editCategoryForm, description: e.target.value })}
+                placeholder="Category description"
+                rows={3}
+              />
             </div>
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label htmlFor="edit-manager">Category Manager</Label>
-              <Select defaultValue="john-smith">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a manager" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="john-smith">John Smith</SelectItem>
-                  <SelectItem value="sarah-johnson">Sarah Johnson</SelectItem>
-                  <SelectItem value="michael-brown">Michael Brown</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="edit-manager"
+                value={editCategoryForm.categoryManager}
+                onChange={(e) => setEditCategoryForm({ ...editCategoryForm, categoryManager: e.target.value })}
+                placeholder="Manager name"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-tags">Tags</Label>
-              <Input id="edit-tags" defaultValue="Strategic, High Value, Core Business" />
+            <div className="space-y-2">
+              <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+              <Input
+                id="edit-tags"
+                value={editCategoryForm.tags}
+                onChange={(e) => setEditCategoryForm({ ...editCategoryForm, tags: e.target.value })}
+                placeholder="e.g., Strategic, High Value, Core Business"
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditCategoryOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsEditCategoryOpen(false)}>Save Changes</Button>
+            <Button onClick={updateCategory} disabled={!editCategoryForm.name || !editCategoryForm.description}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Confirmation Dialog */}
+      <Dialog open={isDeleteCategoryOpen} onOpenChange={setIsDeleteCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedCategory?.name}"? This action cannot be undone.
+              All subcategories will also be deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteCategoryOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteCategory}>
+              Delete Category
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Add Subcategory Dialog */}
       <Dialog open={isAddSubcategoryOpen} onOpenChange={setIsAddSubcategoryOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Subcategory</DialogTitle>
-            <DialogDescription>Create a new subcategory under {selectedCategory?.name}.</DialogDescription>
+            <DialogDescription>
+              Add a new subcategory to "{selectedCategory?.name}"
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="sub-name">Subcategory Name</Label>
-              <Input id="sub-name" placeholder="Enter subcategory name" />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="add-sub-name">Name *</Label>
+              <Input
+                id="add-sub-name"
+                value={addSubcategoryForm.name}
+                onChange={(e) => setAddSubcategoryForm({ ...addSubcategoryForm, name: e.target.value })}
+                placeholder="Subcategory name"
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="sub-description">Description</Label>
-              <Textarea id="sub-description" placeholder="Enter subcategory description" />
+            <div className="space-y-2">
+              <Label htmlFor="add-sub-description">Description</Label>
+              <Textarea
+                id="add-sub-description"
+                value={addSubcategoryForm.description}
+                onChange={(e) => setAddSubcategoryForm({ ...addSubcategoryForm, description: e.target.value })}
+                placeholder="Subcategory description"
+                rows={3}
+              />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="sub-manager">Subcategory Manager</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a manager" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="john-smith">John Smith</SelectItem>
-                  <SelectItem value="sarah-johnson">Sarah Johnson</SelectItem>
-                  <SelectItem value="michael-brown">Michael Brown</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="add-sub-spend">Spend</Label>
+                <Input
+                  id="add-sub-spend"
+                  type="number"
+                  value={addSubcategoryForm.spend}
+                  onChange={(e) => setAddSubcategoryForm({ ...addSubcategoryForm, spend: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="add-sub-suppliers">Suppliers</Label>
+                <Input
+                  id="add-sub-suppliers"
+                  type="number"
+                  value={addSubcategoryForm.suppliers}
+                  onChange={(e) => setAddSubcategoryForm({ ...addSubcategoryForm, suppliers: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="add-sub-contracts">Contracts</Label>
+                <Input
+                  id="add-sub-contracts"
+                  type="number"
+                  value={addSubcategoryForm.contracts}
+                  onChange={(e) => setAddSubcategoryForm({ ...addSubcategoryForm, contracts: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddSubcategoryOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsAddSubcategoryOpen(false)}>Create Subcategory</Button>
+            <Button onClick={createSubcategory} disabled={!addSubcategoryForm.name}>
+              Add Subcategory
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Subcategory Dialog */}
+      <Dialog open={isEditSubcategoryOpen} onOpenChange={setIsEditSubcategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Subcategory</DialogTitle>
+            <DialogDescription>Update subcategory information</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-sub-name">Name *</Label>
+              <Input
+                id="edit-sub-name"
+                value={editSubcategoryForm.name}
+                onChange={(e) => setEditSubcategoryForm({ ...editSubcategoryForm, name: e.target.value })}
+                placeholder="Subcategory name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-sub-description">Description</Label>
+              <Textarea
+                id="edit-sub-description"
+                value={editSubcategoryForm.description}
+                onChange={(e) => setEditSubcategoryForm({ ...editSubcategoryForm, description: e.target.value })}
+                placeholder="Subcategory description"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-sub-spend">Spend</Label>
+                <Input
+                  id="edit-sub-spend"
+                  type="number"
+                  value={editSubcategoryForm.spend}
+                  onChange={(e) => setEditSubcategoryForm({ ...editSubcategoryForm, spend: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-sub-suppliers">Suppliers</Label>
+                <Input
+                  id="edit-sub-suppliers"
+                  type="number"
+                  value={editSubcategoryForm.suppliers}
+                  onChange={(e) => setEditSubcategoryForm({ ...editSubcategoryForm, suppliers: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-sub-contracts">Contracts</Label>
+                <Input
+                  id="edit-sub-contracts"
+                  type="number"
+                  value={editSubcategoryForm.contracts}
+                  onChange={(e) => setEditSubcategoryForm({ ...editSubcategoryForm, contracts: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditSubcategoryOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateSubcategory} disabled={!editSubcategoryForm.name}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Subcategory Confirmation Dialog */}
+      <Dialog open={isDeleteSubcategoryOpen} onOpenChange={setIsDeleteSubcategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Subcategory</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedSubcategory?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteSubcategoryOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteSubcategory}>
+              Delete Subcategory
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Subcategory Details Dialog */}
+      <Dialog open={isViewSubcategoryDetailsOpen} onOpenChange={setIsViewSubcategoryDetailsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedSubcategory?.name}</DialogTitle>
+            <DialogDescription>Subcategory details</DialogDescription>
+          </DialogHeader>
+          {selectedSubcategory && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-muted-foreground">Description</Label>
+                <p className="mt-1">{selectedSubcategory.description}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Spend</Label>
+                  <p className="mt-1 font-medium">{formatCurrency(selectedSubcategory.spend)}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Suppliers</Label>
+                  <p className="mt-1 font-medium">{selectedSubcategory.suppliers}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Contracts</Label>
+                  <p className="mt-1 font-medium">{selectedSubcategory.contracts}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsViewSubcategoryDetailsOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -30,7 +30,6 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { ThemeToggle } from "@/components/theme-toggle"
 
 const navItems = [
   {
@@ -102,12 +101,9 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <PieChart className="h-6 w-6" />
-            <span className="text-lg font-semibold">ProcureIQ</span>
-          </div>
-          <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <PieChart className="h-6 w-6" />
+          <span className="text-lg font-semibold">ProcureIQ</span>
         </div>
         <div className="mt-4 relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
