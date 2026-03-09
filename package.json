@@ -44,7 +44,6 @@
     "react-dom": "^19.0.0",
     "react-grid-layout": "^1.3.4",
     "react-resizable": "latest",
-    "react-simple-maps": "^3.0.0",
     "recharts": "latest",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
