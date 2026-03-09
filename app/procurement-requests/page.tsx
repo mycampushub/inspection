@@ -30,10 +30,10 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { localProcurementRequests, type ProcurementItem as LocalProcurementItem } from "@/lib/local-data"
+import { localProcurementRequests, type ProcurementRequest as LocalProcurementRequest } from "@/lib/local-data"
 
 export default function ProcurementRequests() {
-  const [requests, setRequests] = useState<LocalProcurementItem[]>(localProcurementRequests)
+  const [requests, setRequests] = useState<LocalProcurementRequest[]>(localProcurementRequests())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -52,7 +52,7 @@ export default function ProcurementRequests() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
-  const [selectedRequest, setSelectedRequest] = useState<LocalProcurementItem | null>(null)
+  const [selectedRequest, setSelectedRequest] = useState<LocalProcurementRequest | null>(null)
   
   // Form States
   const [formData, setFormData] = useState({
@@ -62,8 +62,8 @@ export default function ProcurementRequests() {
     department: "",
     priority: "Medium" as "Low" | "Medium" | "High",
     amount: 0,
-    status: "Draft" as "Draft" | "Pending Approval",
-    items: [] as LocalProcurementItem["items"],
+    status: "Draft" as "Draft" | "Pending Approval" | "Approved" | "Rejected",
+    items: [] as LocalProcurementRequest["items"],
   })
   const [newItem, setNewItem] = useState({ name: "", quantity: 1, unitPrice: 0 })
   const [rejectComments, setRejectComments] = useState("")
@@ -149,7 +149,7 @@ export default function ProcurementRequests() {
   }
   
   // Open edit dialog
-  const handleOpenEditDialog = (request: LocalProcurementItem) => {
+  const handleOpenEditDialog = (request: LocalProcurementRequest) => {
     setSelectedRequest(request)
     setFormData({
       title: request.title,
@@ -165,26 +165,26 @@ export default function ProcurementRequests() {
   }
   
   // Open view dialog
-  const handleOpenViewDialog = (request: LocalProcurementItem) => {
+  const handleOpenViewDialog = (request: LocalProcurementRequest) => {
     setSelectedRequest(request)
     setIsViewDialogOpen(true)
   }
   
   // Open delete dialog
-  const handleOpenDeleteDialog = (request: LocalProcurementItem) => {
+  const handleOpenDeleteDialog = (request: LocalProcurementRequest) => {
     setSelectedRequest(request)
     setIsDeleteDialogOpen(true)
   }
   
   // Open approve dialog
-  const handleOpenApproveDialog = (request: LocalProcurementItem) => {
+  const handleOpenApproveDialog = (request: LocalProcurementRequest) => {
     setSelectedRequest(request)
     setApproveComments("")
     setIsApproveDialogOpen(true)
   }
   
   // Open reject dialog
-  const handleOpenRejectDialog = (request: LocalProcurementItem) => {
+  const handleOpenRejectDialog = (request: LocalProcurementRequest) => {
     setSelectedRequest(request)
     setRejectComments("")
     setIsRejectDialogOpen(true)
@@ -195,27 +195,30 @@ export default function ProcurementRequests() {
     try {
       // Calculate total amount from items if not set
       let totalAmount = formData.amount
-      if (formData.items.length > 0) {
+      if (formData.items && formData.items.length > 0) {
         totalAmount = formData.items.reduce((sum, item) => sum + item.totalPrice, 0)
       }
       
-      const newRequest: LocalProcurementItem = {
+      const newRequest: LocalProcurementRequest = {
         id: `PR-2026-${String(requests.length + 1).padStart(3, '0')}`,
         ...formData,
         amount: totalAmount,
-        status: "Pending Approval",
-        currency: "USD",
-        createdAt: new Date().toISOString(),
+        status: "Pending Approval" as const,
+        date: new Date().toISOString().split('T')[0],
         approvalHistory: [
           {
+            id: `AH-${Date.now()}-1`,
             action: "Created",
-            by: formData.requester,
-            at: new Date().toISOString()
+            status: "Draft",
+            date: new Date().toISOString().split('T')[0],
+            approvedBy: formData.requester
           },
           {
+            id: `AH-${Date.now()}-2`,
             action: "Submitted",
-            by: formData.requester,
-            at: new Date().toISOString()
+            status: "Pending Approval",
+            date: new Date().toISOString().split('T')[0],
+            approvedBy: formData.requester
           }
         ]
       }
@@ -236,11 +239,11 @@ export default function ProcurementRequests() {
     
     try {
       let totalAmount = formData.amount
-      if (formData.items.length > 0) {
+      if (formData.items && formData.items.length > 0) {
         totalAmount = formData.items.reduce((sum, item) => sum + item.totalPrice, 0)
       }
       
-      const updatedRequest: LocalProcurementItem = {
+      const updatedRequest: LocalProcurementRequest = {
         ...selectedRequest,
         ...formData,
         amount: totalAmount,
@@ -277,14 +280,23 @@ export default function ProcurementRequests() {
     if (!selectedRequest) return
     
     try {
-      const approvalHistoryEntry = {
+      const approvalHistoryEntry: {
+        id: string;
+        action: string;
+        status: string;
+        date: string;
+        approvedBy: string;
+        comments?: string;
+      } = {
+        id: `AH-${Date.now()}`,
         action: "Approved",
-        by: "Admin",
-        at: new Date().toISOString(),
-        comments: approveComments || undefined,
+        status: "Approved",
+        date: new Date().toISOString().split('T')[0],
+        approvedBy: "Admin",
+        comments: approveComments,
       }
       
-      const updatedRequest: LocalProcurementItem = {
+      const updatedRequest: LocalProcurementRequest = {
         ...selectedRequest,
         status: "Approved",
         approvalHistory: [...(selectedRequest.approvalHistory || []), approvalHistoryEntry],
@@ -306,14 +318,23 @@ export default function ProcurementRequests() {
     if (!selectedRequest) return
     
     try {
-      const approvalHistoryEntry = {
+      const approvalHistoryEntry: {
+        id: string;
+        action: string;
+        status: string;
+        date: string;
+        approvedBy: string;
+        comments?: string;
+      } = {
+        id: `AH-${Date.now()}`,
         action: "Rejected",
-        by: "Admin",
-        at: new Date().toISOString(),
-        comments: rejectComments || undefined,
+        status: "Rejected",
+        date: new Date().toISOString().split('T')[0],
+        approvedBy: "Admin",
+        comments: rejectComments,
       }
       
-      const updatedRequest: LocalProcurementItem = {
+      const updatedRequest: LocalProcurementRequest = {
         ...selectedRequest,
         status: "Rejected",
         approvalHistory: [...(selectedRequest.approvalHistory || []), approvalHistoryEntry],
@@ -334,7 +355,7 @@ export default function ProcurementRequests() {
   const handleAddItem = () => {
     if (!newItem.name) return
     
-    const item: LocalProcurementItem["items"][0] = {
+    const item: LocalProcurementRequest["items"][0] = {
       name: newItem.name,
       quantity: newItem.quantity,
       unitPrice: newItem.unitPrice,
@@ -354,7 +375,7 @@ export default function ProcurementRequests() {
   }
   
   // Render table
-  const renderTable = (data: LocalProcurementItem[]) => (
+  const renderTable = (data: LocalProcurementRequest[]) => (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
@@ -394,7 +415,7 @@ export default function ProcurementRequests() {
               <TableCell>{request.title}</TableCell>
               <TableCell>{request.requester}</TableCell>
               <TableCell>{request.department}</TableCell>
-              <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(request.date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <Badge
                   variant={
@@ -891,7 +912,7 @@ export default function ProcurementRequests() {
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Date</Label>
-                  <p className="font-medium">{new Date(selectedRequest.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium">{new Date(selectedRequest.date).toLocaleDateString()}</p>
                 </div>
               </div>
               <div>
@@ -979,10 +1000,10 @@ export default function ProcurementRequests() {
                       <div key={index} className="p-2 bg-muted rounded">
                         <div className="flex justify-between">
                           <span className="font-medium">{history.action}</span>
-                          <span className="text-sm text-muted-foreground">{new Date(history.at).toLocaleString()}</span>
+                          <span className="text-sm text-muted-foreground">{new Date(history.date).toLocaleString()}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          By: {history.by}
+                          By: {history.approvedBy}
                         </p>
                         {history.comments && (
                           <p className="text-sm mt-1 italic">"{history.comments}"</p>

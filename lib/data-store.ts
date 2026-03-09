@@ -207,576 +207,344 @@ class InMemoryDataStore {
   }
 
   private initializeData() {
-    // Initialize Procurement Requests
-    this.procurementRequests = [
-      {
-        id: "PR-2023-001",
-        title: "Office Furniture for New Location",
-        description: "Furniture for new office location including desks, chairs, and storage units",
-        requester: "Sarah Johnson",
-        department: "Facilities",
-        date: "2023-11-15",
-        status: "Approved",
-        priority: "Medium",
-        amount: 12500,
+    // ==================== GENERATE 30 CATEGORIES ====================
+    const categoryNames = [
+      "IT Equipment", "Office Supplies", "Professional Services", "Facilities", "Marketing",
+      "Human Resources", "Legal Services", "Financial Services", "Transportation", "Construction",
+      "Telecommunications", "Security Services", "Consulting", "Training & Development", "Insurance",
+      "Software Licensing", "Travel & Expense", "Event Management", "Print & Media", "Utilities",
+      "Healthcare & Medical", "Environmental Services", "Research & Development", "Logistics", "Real Estate",
+      "Food & Catering", "Maintenance Services", "Raw Materials", "Industrial Equipment", "Safety Equipment"
+    ];
+
+    const categoryManagers = [
+      "John Smith", "Sarah Johnson", "Michael Chen", "Jessica Williams", "Robert Taylor",
+      "Amanda Rodriguez", "David Wilson", "Jennifer Lee", "Chris Martinez", "Emily Brown",
+      "Daniel Garcia", "Lisa Anderson", "Kevin Thomas", "Maria Garcia", "James Wilson"
+    ];
+
+    this.categories = categoryNames.map((name, index) => ({
+      id: index + 1,
+      name,
+      description: `Comprehensive ${name.toLowerCase()} procurement category covering all related goods and services`,
+      spend: Math.floor(Math.random() * 5000000) + 500000,
+      suppliers: Math.floor(Math.random() * 50) + 10,
+      contracts: Math.floor(Math.random() * 25) + 5,
+      categoryManager: categoryManagers[index % categoryManagers.length],
+      lastUpdated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      tags: index % 2 === 0 ? ["Strategic", "High Value"] : ["Operational", "Recurring"],
+      subcategories: [
+        {
+          id: (index + 1) * 10 + 1,
+          name: `${name} - Goods`,
+          description: `Physical ${name.toLowerCase()} products and materials`,
+          spend: Math.floor(Math.random() * 3000000) + 200000,
+          suppliers: Math.floor(Math.random() * 30) + 5,
+          contracts: Math.floor(Math.random() * 15) + 3
+        },
+        {
+          id: (index + 1) * 10 + 2,
+          name: `${name} - Services`,
+          description: `${name.toLowerCase()} related professional services`,
+          spend: Math.floor(Math.random() * 2000000) + 300000,
+          suppliers: Math.floor(Math.random() * 20) + 5,
+          contracts: Math.floor(Math.random() * 10) + 2
+        }
+      ]
+    }));
+
+    // ==================== GENERATE 30 SUPPLIERS ====================
+    const supplierNames = [
+      "Tech Solutions Inc.", "Office Depot", "Consulting Partners", "Marketing Agency", "Facilities Management",
+      "Global Logistics", "Security First Corp", "HealthCare Plus", "Eco Services Ltd", "Build Right Construction",
+      "Digital Innovations", "Travel Pro International", "Media Works", "Food Services Group", "Utility Partners",
+      "Safety First Supplies", "Industrial Tech Corp", "Research & Science Co", "Transport Express", "Insurance Masters",
+      "Training Excellence", "Legal Eagles", "Financial Wizards", "Construction Kings", "Software Solutions Pro",
+      "Telecom Giants", "Event Planners Inc", "Maintenance Masters", "Raw Materials Direct", "Real Estate Partners"
+    ];
+
+    const supplierCities = ["Dubai", "Abu Dhabi", "Sharjah", "Ras Al Khaimah", "Ajman"];
+    const contactNames = [
+      "John Anderson", "Mary Johnson", "David Chen", "Sarah Williams", "Ahmed Hassan",
+      "Michael Brown", "Lisa Martinez", "James Wilson", "Emily Davis", "Robert Garcia",
+      "Jennifer Taylor", "Daniel Anderson", "Maria Thomas", "Chris Jackson", "Lisa White"
+    ];
+
+    this.suppliers = supplierNames.map((name, index) => {
+      const category = this.categories[index % this.categories.length].name;
+      const type = index < 10 ? "Strategic" : index < 20 ? "Preferred" : "Tactical";
+      const tier = type === "Strategic" ? "Tier 1" : type === "Preferred" ? "Tier 2" : "Tier 3";
+      
+      return {
+        id: `SUP-${String(index + 1).padStart(3, '0')}`,
+        name,
+        type,
+        category,
+        status: index % 10 === 0 ? "Inactive" : index % 7 === 0 ? "On Hold" : "Active",
+        tier,
+        riskLevel: index % 5 === 0 ? "High" : index % 3 === 0 ? "Medium" : "Low",
+        rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
+        totalSpend: Math.floor(Math.random() * 3000000) + 500000,
+        contractCount: Math.floor(Math.random() * 8) + 1,
+        performanceScore: Math.floor(Math.random() * 20) + 80,
+        contactPerson: contactNames[index % contactNames.length],
+        email: `${contactNames[index % contactNames.length].toLowerCase().replace(' ', '.')}@${name.toLowerCase().replace(/\s/g, '')}.com`,
+        phone: `+971-4-${String(Math.floor(Math.random() * 900000) + 100000)}`,
+        address: `${Math.floor(Math.random() * 999) + 1} Business Street`,
+        city: supplierCities[index % supplierCities.length],
+        country: "United Arab Emirates",
+        registrationDate: new Date(Date.now() - Math.random() * 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        certifications: index % 2 === 0 ? ["ISO 9001", "ISO 27001"] : ["ISO 9001"],
+        contracts: []
+      };
+    });
+
+    // ==================== GENERATE 30 PROCUREMENT REQUESTS ====================
+    const departments = ["IT", "Finance", "HR", "Marketing", "Operations", "Facilities", "Legal", "Administration"];
+    const requesters = [
+      "Sarah Johnson", "Michael Chen", "Jessica Williams", "Robert Taylor", "Amanda Rodriguez",
+      "David Wilson", "Jennifer Lee", "Chris Martinez", "Emily Brown", "Daniel Garcia"
+    ];
+
+    const prTitles = [
+      "Office Equipment Procurement", "IT Infrastructure Upgrade", "Consulting Services", "Facility Maintenance", "Marketing Campaign",
+      "Training Program", "Legal Advisory Services", "Security System Installation", "Travel Expenses", "Event Management",
+      "Software Licenses", "Office Supplies", "Professional Services", "Construction Project", "Telecommunication Services",
+      "Insurance Renewal", "Research Equipment", "Transportation Services", "Catering Services", "Utility Services",
+      "Healthcare Supplies", "Environmental Services", "Industrial Equipment", "Safety Equipment", "Raw Materials",
+      "Real Estate Lease", "Maintenance Services", "Print Services", "Financial Advisory", "Media Production"
+    ];
+
+    const statuses: Array<"Draft" | "Pending Approval" | "Approved" | "Rejected"> = ["Draft", "Pending Approval", "Approved", "Rejected"];
+    const priorities: Array<"Low" | "Medium" | "High"> = ["Low", "Medium", "High"];
+
+    this.procurementRequests = prTitles.map((title, index) => {
+      const category = this.categories[index % this.categories.length];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      return {
+        id: `PR-2023-${String(index + 1).padStart(3, '0')}`,
+        title,
+        description: `Procurement request for ${title.toLowerCase()} to support business operations`,
+        requester: requesters[index % requesters.length],
+        department: departments[index % departments.length],
+        date: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status,
+        priority: priorities[Math.floor(Math.random() * priorities.length)],
+        amount: Math.floor(Math.random() * 100000) + 5000,
         items: [
-          { id: "1", name: "Office Desk", quantity: 20, unitPrice: 300, totalPrice: 6000 },
-          { id: "2", name: "Ergonomic Chair", quantity: 20, unitPrice: 250, totalPrice: 5000 },
-          { id: "3", name: "Filing Cabinet", quantity: 10, unitPrice: 150, totalPrice: 1500 },
-        ],
-        approvalHistory: [
           {
-            id: "1",
-            action: "Submitted",
-            status: "Pending Approval",
-            date: "2023-11-15",
-            approvedBy: "Sarah Johnson",
-          },
-          {
-            id: "2",
-            action: "Approved",
-            status: "Approved",
-            date: "2023-11-16",
-            approvedBy: "John Smith",
-            comments: "Approved within budget",
-          },
+            id: `${index + 1}-1`,
+            name: `${category.name} Item 1`,
+            description: `Primary ${category.name.toLowerCase()} item`,
+            quantity: Math.floor(Math.random() * 50) + 1,
+            unitPrice: Math.floor(Math.random() * 1000) + 100,
+            totalPrice: Math.floor(Math.random() * 50000) + 1000
+          }
         ],
-      },
-      {
-        id: "PR-2023-002",
-        title: "IT Equipment Refresh",
-        description: "Refresh laptop fleet for IT department",
-        requester: "Michael Chen",
-        department: "IT",
-        date: "2023-11-18",
-        status: "Pending Approval",
-        priority: "High",
-        amount: 45000,
-        items: [
-          { id: "1", name: "Laptop", quantity: 15, unitPrice: 2500, totalPrice: 37500 },
-          { id: "2", name: "Monitor", quantity: 15, unitPrice: 500, totalPrice: 7500 },
-        ],
-      },
-      {
-        id: "PR-2023-003",
-        title: "Marketing Materials for Q1 Campaign",
-        description: "Marketing materials for Q1 2024 campaign",
-        requester: "Jessica Williams",
-        department: "Marketing",
-        date: "2023-11-20",
-        status: "Draft",
-        priority: "Low",
-        amount: 8750,
-      },
-      {
-        id: "PR-2023-004",
-        title: "Consulting Services for ERP Implementation",
-        description: "External consulting services for ERP system implementation",
-        requester: "Robert Taylor",
-        department: "Finance",
-        date: "2023-11-22",
-        status: "Pending Approval",
-        priority: "High",
-        amount: 75000,
-      },
-      {
-        id: "PR-2023-005",
-        title: "Office Supplies Quarterly Order",
-        description: "Quarterly office supplies order",
-        requester: "Amanda Rodriguez",
-        department: "Administration",
-        date: "2023-11-25",
-        status: "Approved",
-        priority: "Medium",
-        amount: 3200,
-      },
-      {
-        id: "PR-2023-006",
-        title: "Training Materials for New Hires",
-        description: "Training materials and resources for new employee onboarding",
-        requester: "David Wilson",
-        department: "HR",
-        date: "2023-11-28",
-        status: "Rejected",
-        priority: "Low",
-        amount: 5500,
-        approvalHistory: [
-          {
-            id: "1",
-            action: "Submitted",
-            status: "Pending Approval",
-            date: "2023-11-28",
-            approvedBy: "David Wilson",
-          },
-          {
-            id: "2",
-            action: "Rejected",
-            status: "Rejected",
-            date: "2023-11-29",
-            approvedBy: "John Smith",
-            comments: "Budget already allocated for internal training materials",
-          },
-        ],
-      },
-      {
-        id: "PR-2023-007",
-        title: "Software Licenses Renewal",
-        description: "Annual software licenses renewal",
-        requester: "Jennifer Lee",
-        department: "IT",
-        date: "2023-11-30",
-        status: "Approved",
-        priority: "High",
-        amount: 28000,
-      },
+        approvalHistory: status !== "Draft" ? [{
+          id: `AH-${index + 1}`,
+          action: "Submitted",
+          status: "Pending Approval",
+          date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          approvedBy: requesters[index % requesters.length]
+        }] : []
+      };
+    });
+
+    // ==================== GENERATE 30 CONTRACTS ====================
+    const contractTypes: Array<"Statement of Work" | "Services Agreement" | "Master Service" | "Licenses/Subscriptions" | "Lease Agreement" | "Purchase/Blanket" | "Warranty" | "Engagement Letter"> = [
+      "Statement of Work", "Services Agreement", "Master Service", "Licenses/Subscriptions", 
+      "Lease Agreement", "Purchase/Blanket", "Warranty", "Engagement Letter"
     ];
 
-    // Initialize Categories
-    this.categories = [
-      {
-        id: 1,
-        name: "IT Equipment",
-        description: "Computer hardware, software, and peripherals",
-        spend: 4250000,
-        suppliers: 42,
-        contracts: 18,
-        categoryManager: "John Smith",
-        lastUpdated: "2024-01-09",
-        tags: ["Strategic", "High Value", "Core Business"],
-        subcategories: [
-          { id: 11, name: "Hardware", description: "Physical computing devices", spend: 2800000, suppliers: 24, contracts: 10 },
-          { id: 12, name: "Software", description: "Applications and operating systems", spend: 950000, suppliers: 15, contracts: 6 },
-          { id: 13, name: "Peripherals", description: "External devices and accessories", spend: 500000, suppliers: 8, contracts: 2 },
-        ],
-      },
-      {
-        id: 2,
-        name: "Office Supplies",
-        description: "Stationery, paper products, and office consumables",
-        spend: 1250000,
-        suppliers: 28,
-        contracts: 12,
-        categoryManager: "Sarah Johnson",
-        lastUpdated: "2024-01-05",
-        tags: ["Operational", "Recurring"],
-        subcategories: [
-          { id: 21, name: "Stationery", description: "Pens, pencils, and writing materials", spend: 450000, suppliers: 12, contracts: 5 },
-          { id: 22, name: "Paper Products", description: "Printing paper, notebooks, and notepads", spend: 550000, suppliers: 8, contracts: 4 },
-          { id: 23, name: "Office Consumables", description: "Toner, ink, and other consumable items", spend: 250000, suppliers: 10, contracts: 3 },
-        ],
-      },
-      {
-        id: 3,
-        name: "Professional Services",
-        description: "Consulting, legal, and other professional services",
-        spend: 3850000,
-        suppliers: 35,
-        contracts: 22,
-        categoryManager: "Michael Chen",
-        lastUpdated: "2024-01-08",
-        tags: ["Strategic", "High Value"],
-        subcategories: [
-          { id: 31, name: "Consulting", description: "Business and management consulting", spend: 2200000, suppliers: 18, contracts: 12 },
-          { id: 32, name: "Legal Services", description: "Legal advice and representation", spend: 950000, suppliers: 8, contracts: 6 },
-          { id: 33, name: "Financial Services", description: "Accounting, auditing, and financial advisory", spend: 700000, suppliers: 9, contracts: 4 },
-        ],
-      },
-      {
-        id: 4,
-        name: "Facilities",
-        description: "Building maintenance, utilities, and facility services",
-        spend: 2950000,
-        suppliers: 32,
-        contracts: 15,
-        categoryManager: "Robert Taylor",
-        lastUpdated: "2024-01-07",
-        tags: ["Operational", "Critical"],
-        subcategories: [
-          { id: 41, name: "Maintenance", description: "Building repairs and maintenance", spend: 1200000, suppliers: 14, contracts: 6 },
-          { id: 42, name: "Utilities", description: "Electricity, water, and other utilities", spend: 1050000, suppliers: 8, contracts: 5 },
-          { id: 43, name: "Security", description: "Security services and equipment", spend: 700000, suppliers: 10, contracts: 4 },
-        ],
-      },
-      {
-        id: 5,
-        name: "Marketing",
-        description: "Advertising, promotions, and marketing services",
-        spend: 1850000,
-        suppliers: 25,
-        contracts: 14,
-        categoryManager: "Jessica Williams",
-        lastUpdated: "2024-01-06",
-        tags: ["Strategic", "Growth"],
-        subcategories: [
-          { id: 51, name: "Advertising", description: "Print, digital, and media advertising", spend: 850000, suppliers: 12, contracts: 6 },
-          { id: 52, name: "Digital Marketing", description: "SEO, social media, and online marketing", spend: 650000, suppliers: 8, contracts: 5 },
-          { id: 53, name: "Events", description: "Trade shows, conferences, and corporate events", spend: 350000, suppliers: 5, contracts: 3 },
-        ],
-      },
+    const contractTitles = [
+      "IT Equipment Supply Agreement", "Office Supplies Annual Contract", "Consulting Services Agreement",
+      "Building Maintenance Contract", "Marketing Services Agreement", "Training Services Contract",
+      "Legal Services Retainer", "Security Services Agreement", "Healthcare Services Contract",
+      "Environmental Services Agreement", "Construction Project Contract", "Software Licensing Agreement",
+      "Telecommunication Services Contract", "Insurance Policy Contract", "Travel Services Agreement",
+      "Event Management Contract", "Catering Services Agreement", "Utility Services Contract",
+      "Transportation Services Contract", "Real Estate Lease Agreement", "Research Services Contract",
+      "Financial Advisory Services", "Industrial Equipment Supply", "Safety Equipment Contract",
+      "Raw Materials Supply Agreement", "Maintenance Services Contract", "Print Services Agreement",
+      "Media Production Contract", "Professional Services Agreement", "Facility Management Contract"
     ];
 
-    // Initialize Suppliers
-    this.suppliers = [
-      {
-        id: "SUP-001",
-        name: "Tech Solutions Inc.",
-        type: "Strategic",
-        category: "IT Equipment",
-        status: "Active",
-        tier: "Tier 1",
-        riskLevel: "Low",
-        rating: 4.5,
-        totalSpend: 2500000,
-        contractCount: 5,
-        performanceScore: 92,
-        contactPerson: "John Anderson",
-        email: "john@techsolutions.com",
-        phone: "+971-4-1234567",
-        address: "123 Business Bay",
-        city: "Dubai",
-        country: "United Arab Emirates",
-        registrationDate: "2020-01-15",
-        certifications: ["ISO 9001", "ISO 27001"],
-        contracts: ["CON-2023-001", "CON-2023-005"],
-      },
-      {
-        id: "SUP-002",
-        name: "Office Depot",
-        type: "Preferred",
-        category: "Office Supplies",
-        status: "Active",
-        tier: "Tier 2",
-        riskLevel: "Low",
-        rating: 4.2,
-        totalSpend: 1200000,
-        contractCount: 3,
-        performanceScore: 88,
-        contactPerson: "Mary Johnson",
-        email: "mary@officedepot.ae",
-        phone: "+971-4-2345678",
-        address: "456 Sheikh Zayed Road",
-        city: "Dubai",
-        country: "United Arab Emirates",
-        registrationDate: "2019-03-20",
-        certifications: ["ISO 9001"],
-        contracts: ["CON-2023-008"],
-      },
-      {
-        id: "SUP-003",
-        name: "Consulting Partners",
-        type: "Strategic",
-        category: "Professional Services",
-        status: "Active",
-        tier: "Tier 1",
-        riskLevel: "Medium",
-        rating: 4.7,
-        totalSpend: 1800000,
-        contractCount: 4,
-        performanceScore: 95,
-        contactPerson: "David Chen",
-        email: "david@consultingpartners.com",
-        phone: "+971-2-3456789",
-        address: "789 Corniche Road",
-        city: "Abu Dhabi",
-        country: "United Arab Emirates",
-        registrationDate: "2018-06-10",
-        certifications: ["ISO 9001", "ISO 27001", "CMMI Level 5"],
-        contracts: ["CON-2023-010"],
-      },
-      {
-        id: "SUP-004",
-        name: "Marketing Agency",
-        type: "Preferred",
-        category: "Marketing",
-        status: "Active",
-        tier: "Tier 2",
-        riskLevel: "Low",
-        rating: 4.3,
-        totalSpend: 1500000,
-        contractCount: 3,
-        performanceScore: 90,
-        contactPerson: "Sarah Williams",
-        email: "sarah@marketingagency.ae",
-        phone: "+971-4-4567890",
-        address: "321 Media City",
-        city: "Dubai",
-        country: "United Arab Emirates",
-        registrationDate: "2020-08-25",
-        certifications: ["ISO 9001"],
-        contracts: ["CON-2023-012"],
-      },
-      {
-        id: "SUP-005",
-        name: "Facilities Management",
-        type: "Tactical",
-        category: "Facilities",
-        status: "Active",
-        tier: "Tier 3",
-        riskLevel: "Medium",
-        rating: 3.9,
-        totalSpend: 1200000,
-        contractCount: 2,
-        performanceScore: 82,
-        contactPerson: "Ahmed Hassan",
-        email: "ahmed@facilitiesmgt.ae",
-        phone: "+971-50-1234567",
-        address: "654 Industrial Area",
-        city: "Abu Dhabi",
-        country: "United Arab Emirates",
-        registrationDate: "2021-02-14",
-        certifications: ["ISO 9001", "ISO 14001"],
-        contracts: ["CON-2023-015"],
-      },
-      {
-        id: "SUP-006",
-        name: "Global Logistics",
-        type: "Preferred",
-        category: "Facilities",
-        status: "Active",
-        tier: "Tier 2",
-        riskLevel: "Low",
-        rating: 4.4,
-        totalSpend: 1800000,
-        contractCount: 4,
-        performanceScore: 91,
-        contactPerson: "Michael Brown",
-        email: "michael@globallogistics.com",
-        phone: "+971-4-5678901",
-        address: "987 Jebel Ali",
-        city: "Dubai",
-        country: "United Arab Emirates",
-        registrationDate: "2019-11-30",
-        certifications: ["ISO 9001", "ISO 27001", "AEO"],
-        contracts: ["CON-2023-023"],
-      },
+    const contractStatuses: Array<"Active" | "Pending" | "Expired" | "Expiring Soon" | "Terminated"> = [
+      "Active", "Pending", "Expired", "Expiring Soon", "Terminated"
     ];
 
-    // Initialize Contracts
-    this.contracts = [
-      {
-        id: "CON-2023-001",
-        supplierId: "SUP-001",
-        supplierName: "Tech Solutions Inc.",
-        title: "IT Equipment Supply Agreement",
-        type: "Master Service",
-        category: "IT Equipment",
-        value: 250000,
+    this.contracts = contractTitles.map((title, index) => {
+      const supplier = this.suppliers[index % this.suppliers.length];
+      const startDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000);
+      const endDate = new Date(startDate.getTime() + (Math.random() * 365 + 180) * 24 * 60 * 60 * 1000);
+      const status = endDate < new Date() ? "Expired" : 
+                     (endDate.getTime() - Date.now()) < 60 * 24 * 60 * 60 * 1000 ? "Expiring Soon" : 
+                     contractStatuses[Math.floor(Math.random() * 3)]; // Active, Pending, or Terminated
+      
+      const contractId = `CON-2023-${String(index + 1).padStart(3, '0')}`;
+      
+      // Link contract to supplier
+      if (!supplier.contracts) supplier.contracts = [];
+      supplier.contracts.push(contractId);
+      
+      return {
+        id: contractId,
+        supplierId: supplier.id,
+        supplierName: supplier.name,
+        title,
+        type: contractTypes[index % contractTypes.length],
+        category: supplier.category,
+        value: Math.floor(Math.random() * 500000) + 50000,
         currency: "USD",
-        startDate: "2023-01-01",
-        endDate: "2023-12-15",
-        status: "Expiring Soon",
-        renewalOption: true,
-        jurisdiction: "United Arab Emirates",
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        status,
+        renewalOption: Math.random() > 0.3,
+        jurisdiction: supplier.city + ", United Arab Emirates",
         hasLocalSupplier: true,
-        hasIndemnity: true,
-        hasRenewalClause: true,
-        hasTerminationClause: true,
-        signedByCEO: true,
+        hasIndemnity: Math.random() > 0.2,
+        hasRenewalClause: Math.random() > 0.3,
+        hasTerminationClause: Math.random() > 0.1,
+        signedByCEO: Math.random() > 0.4,
         milestones: [
-          { id: "1", name: "Initial Delivery", dueDate: "2023-03-15", status: "Completed", amount: 100000 },
-          { id: "2", name: "Second Delivery", dueDate: "2023-06-15", status: "Completed", amount: 100000 },
-          { id: "3", name: "Final Delivery", dueDate: "2023-12-15", status: "In Progress", amount: 50000 },
-        ],
-      },
-      {
-        id: "CON-2023-008",
-        supplierId: "SUP-002",
-        supplierName: "Office Depot",
-        title: "Office Supplies Annual Contract",
-        type: "Purchase/Blanket",
-        category: "Office Supplies",
-        value: 75000,
-        currency: "USD",
-        startDate: "2023-01-01",
-        endDate: "2023-12-22",
-        status: "Expiring Soon",
-        renewalOption: true,
-        jurisdiction: "United Arab Emirates",
-        hasLocalSupplier: true,
-        hasIndemnity: true,
-        hasRenewalClause: true,
-        hasTerminationClause: true,
-        signedByCEO: false,
-      },
-      {
-        id: "CON-2023-015",
-        supplierId: "SUP-005",
-        supplierName: "Facilities Management",
-        title: "Building Maintenance Services",
-        type: "Services Agreement",
-        category: "Facilities",
-        value: 180000,
-        currency: "USD",
-        startDate: "2023-01-01",
-        endDate: "2024-01-05",
-        status: "Active",
-        renewalOption: true,
-        jurisdiction: "Abu Dhabi, United Arab Emirates",
-        hasLocalSupplier: true,
-        hasIndemnity: true,
-        hasRenewalClause: true,
-        hasTerminationClause: true,
-        signedByCEO: true,
-      },
-      {
-        id: "CON-2023-023",
-        supplierId: "SUP-006",
-        supplierName: "Global Logistics",
-        title: "Shipping and Logistics Services",
-        type: "Services Agreement",
-        category: "Facilities",
-        value: 120000,
-        currency: "USD",
-        startDate: "2023-01-01",
-        endDate: "2024-01-15",
-        status: "Active",
-        renewalOption: true,
-        jurisdiction: "United Arab Emirates",
-        hasLocalSupplier: true,
-        hasIndemnity: true,
-        hasRenewalClause: true,
-        hasTerminationClause: true,
-        signedByCEO: false,
-      },
+          {
+            id: `M-${index + 1}-1`,
+            name: "Initial Phase",
+            dueDate: new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: "Completed",
+            amount: Math.floor(Math.random() * 50000) + 10000
+          },
+          {
+            id: `M-${index + 1}-2`,
+            name: "Milestone 2",
+            dueDate: new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: Math.random() > 0.5 ? "Completed" : "In Progress",
+            amount: Math.floor(Math.random() * 50000) + 10000
+          }
+        ]
+      };
+    });
+
+    // ==================== GENERATE 30 RFX EVENTS ====================
+    const rfxTypes: Array<"RFP" | "RFQ" | "RFI" | "RFT"> = ["RFP", "RFQ", "RFI", "RFT"];
+    const rfxStatuses: Array<"Draft" | "Active" | "Evaluation" | "Closed" | "Awarded"> = [
+      "Draft", "Active", "Evaluation", "Closed", "Awarded"
     ];
 
-    // Initialize Rfx Events
-    this.rfxEvents = [
-      {
-        id: "RFX-2023-001",
-        title: "IT Infrastructure Upgrade RFP",
-        type: "RFP",
-        description: "Request for proposal for comprehensive IT infrastructure upgrade",
-        category: "IT Equipment",
-        status: "Evaluation",
-        publishedDate: "2023-10-15",
-        deadline: "2023-12-01",
-        budget: 500000,
-        createdBy: "Michael Chen",
-        createdDate: "2023-10-01",
+    const rfxTitles = [
+      "IT Infrastructure Upgrade RFP", "Office Supplies RFQ", "Consulting Services RFP",
+      "Building Maintenance RFT", "Marketing Campaign RFP", "Training Services RFQ",
+      "Legal Services RFP", "Security System RFT", "Healthcare Services RFP",
+      "Environmental Services RFI", "Construction Project RFP", "Software Licensing RFQ",
+      "Telecommunication Services RFP", "Insurance Services RFI", "Travel Services RFQ",
+      "Event Management RFP", "Catering Services RFQ", "Utility Services RFT",
+      "Transportation Services RFP", "Real Estate Services RFI", "Research Services RFP",
+      "Financial Advisory RFQ", "Industrial Equipment RFP", "Safety Equipment RFT",
+      "Raw Materials RFQ", "Maintenance Services RFP", "Print Services RFQ",
+      "Media Production RFP", "Professional Services RFI", "Facility Management RFP", "Office Equipment RFQ"
+    ];
+
+    this.rfxEvents = rfxTitles.map((title, index) => {
+      const category = this.categories[index % this.categories.length];
+      const status = rfxStatuses[Math.floor(Math.random() * rfxStatuses.length)];
+      const publishedDate = status !== "Draft" ? new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined;
+      const deadline = new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      // Get random suppliers as responders
+      const potentialResponders = this.suppliers.filter(s => s.category === category.name).slice(0, 5);
+      const responses = status !== "Draft" && status !== "Active" ? potentialResponders.slice(0, Math.floor(Math.random() * 4) + 1).map((supplier, i) => ({
+        id: `RESP-${index}-${i}`,
+        supplierId: supplier.id,
+        supplierName: supplier.name,
+        submittedDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        totalAmount: Math.floor(Math.random() * 200000) + 50000,
+        score: Math.floor(Math.random() * 20) + 80,
+        answers: {}
+      })) : [];
+      
+      return {
+        id: `RFX-2023-${String(index + 1).padStart(3, '0')}`,
+        title,
+        type: rfxTypes[index % rfxTypes.length],
+        description: `Request for ${rfxTypes[index % rfxTypes.length]} for ${title.toLowerCase()}`,
+        category: category.name,
+        status,
+        publishedDate,
+        deadline,
+        budget: Math.floor(Math.random() * 500000) + 100000,
+        createdBy: requesters[index % requesters.length],
+        createdDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         evaluationCriteria: [
-          { id: "1", name: "Technical Capability", weight: 30, description: "Technical expertise and solution quality" },
-          { id: "2", name: "Price", weight: 25, description: "Total cost of ownership" },
-          { id: "3", name: "Experience", weight: 20, description: "Relevant industry experience" },
-          { id: "4", name: "Support", weight: 15, description: "Post-implementation support" },
-          { id: "5", name: "Timeline", weight: 10, description: "Proposed implementation timeline" },
+          { id: `EC-${index}-1`, name: "Technical Capability", weight: 30, description: "Technical expertise and solution quality" },
+          { id: `EC-${index}-2`, name: "Price", weight: 25, description: "Total cost of ownership" },
+          { id: `EC-${index}-3`, name: "Experience", weight: 20, description: "Relevant industry experience" },
+          { id: `EC-${index}-4`, name: "Support", weight: 15, description: "Post-implementation support" },
+          { id: `EC-${index}-5`, name: "Timeline", weight: 10, description: "Proposed implementation timeline" }
         ],
-        responses: [
+        responses: responses.length > 0 ? responses : undefined,
+        questions: [
           {
-            id: "RESP-001",
-            supplierId: "SUP-001",
-            supplierName: "Tech Solutions Inc.",
-            submittedDate: "2023-11-20",
-            totalAmount: 450000,
-            score: 88,
-            answers: {},
+            id: `Q-${index}-1`,
+            question: "Describe your company's experience with similar projects",
+            type: "text",
+            required: true
           },
           {
-            id: "RESP-002",
-            supplierId: "SUP-003",
-            supplierName: "Consulting Partners",
-            submittedDate: "2023-11-25",
-            totalAmount: 420000,
-            score: 92,
-            answers: {},
+            id: `Q-${index}-2`,
+            question: "What is your proposed timeline for delivery?",
+            type: "date",
+            required: true
           },
-        ],
-      },
-      {
-        id: "RFX-2023-002",
-        title: "Office Supplies RFQ",
-        type: "RFQ",
-        description: "Request for quotation for annual office supplies",
-        category: "Office Supplies",
-        status: "Active",
-        publishedDate: "2023-11-01",
-        deadline: "2023-12-15",
-        budget: 100000,
-        createdBy: "Amanda Rodriguez",
-        createdDate: "2023-10-28",
-        responses: [
           {
-            id: "RESP-003",
-            supplierId: "SUP-002",
-            supplierName: "Office Depot",
-            submittedDate: "2023-11-15",
-            totalAmount: 85000,
-            score: 90,
-            answers: {},
-          },
-        ],
-      },
-    ];
+            id: `Q-${index}-3`,
+            question: "Total bid amount",
+            type: "number",
+            required: true
+          }
+        ]
+      };
+    });
 
-    // Initialize Performance Evaluations
-    this.performanceEvaluations = [
-      {
-        id: "EVAL-2023-001",
-        supplierId: "SUP-001",
-        supplierName: "Tech Solutions Inc.",
-        category: "IT Equipment",
-        evaluationDate: "2023-12-01",
-        evaluatedBy: "Michael Chen",
-        overallScore: 92,
-        qualityScore: 95,
-        deliveryScore: 90,
-        costScore: 88,
-        serviceScore: 93,
-        complianceScore: 94,
-        innovationScore: 91,
-        status: "Approved",
-        comments: "Excellent performance overall. Delivered all milestones on time with high quality.",
-        issues: [],
-        recommendations: ["Continue current partnership", "Consider expanding scope for future projects"],
-      },
-      {
-        id: "EVAL-2023-002",
-        supplierId: "SUP-002",
-        supplierName: "Office Depot",
-        category: "Office Supplies",
-        evaluationDate: "2023-12-05",
-        evaluatedBy: "Amanda Rodriguez",
-        overallScore: 88,
-        qualityScore: 90,
-        deliveryScore: 92,
-        costScore: 85,
-        serviceScore: 87,
-        complianceScore: 88,
-        innovationScore: 85,
-        status: "Approved",
-        comments: "Good performance with room for improvement in cost competitiveness.",
-        issues: [
-          {
-            id: "1",
-            type: "Delivery Delay",
-            description: "Minor delay in November delivery",
-            severity: "Low",
-            date: "2023-11-10",
-            resolved: true,
-          },
-        ],
-        recommendations: ["Monitor delivery times closely", "Explore cost optimization opportunities"],
-      },
-      {
-        id: "EVAL-2023-003",
-        supplierId: "SUP-003",
-        supplierName: "Consulting Partners",
-        category: "Professional Services",
-        evaluationDate: "2023-12-10",
-        evaluatedBy: "Robert Taylor",
-        overallScore: 95,
-        qualityScore: 96,
-        deliveryScore: 94,
-        costScore: 93,
-        serviceScore: 96,
-        complianceScore: 95,
-        innovationScore: 96,
-        status: "Approved",
-        comments: "Outstanding performance. Exceeded expectations in all areas.",
-        issues: [],
-        recommendations: ["Strategic partnership recommended", "Consider for high-priority projects"],
-      },
-    ];
+    // ==================== GENERATE 30 PERFORMANCE EVALUATIONS ====================
+    const evalStatuses: Array<"Draft" | "Submitted" | "Approved"> = ["Draft", "Submitted", "Approved"];
+
+    this.performanceEvaluations = this.suppliers.slice(0, 30).map((supplier, index) => {
+      const overallScore = Math.floor(Math.random() * 20) + 80;
+      const hasIssues = Math.random() > 0.6;
+      
+      return {
+        id: `EVAL-2023-${String(index + 1).padStart(3, '0')}`,
+        supplierId: supplier.id,
+        supplierName: supplier.name,
+        category: supplier.category,
+        evaluationDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        evaluatedBy: requesters[index % requesters.length],
+        overallScore,
+        qualityScore: Math.floor(Math.random() * 15) + 85,
+        deliveryScore: Math.floor(Math.random() * 15) + 85,
+        costScore: Math.floor(Math.random() * 15) + 85,
+        serviceScore: Math.floor(Math.random() * 15) + 85,
+        complianceScore: Math.floor(Math.random() * 15) + 85,
+        innovationScore: Math.floor(Math.random() * 15) + 85,
+        status: evalStatuses[Math.floor(Math.random() * evalStatuses.length)],
+        comments: hasIssues ? "Good performance with some areas for improvement" : "Excellent performance overall",
+        issues: hasIssues ? [{
+          id: `ISSUE-${index}`,
+          type: ["Delivery", "Quality", "Communication"][Math.floor(Math.random() * 3)],
+          description: "Minor performance issue observed during evaluation period",
+          severity: ["Low", "Medium", "High"][Math.floor(Math.random() * 3)] as "Low" | "Medium" | "High",
+          date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          resolved: Math.random() > 0.5
+        }] : [],
+        recommendations: [
+          "Continue current partnership",
+          "Monitor performance metrics closely",
+          "Consider expanding scope for future projects"
+        ]
+      };
+    });
   }
 
   // ==================== PROCUREMENT REQUESTS METHODS ====================

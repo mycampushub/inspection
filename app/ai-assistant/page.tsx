@@ -39,12 +39,14 @@ interface ConversationHistory {
 }
 
 // Convert aiChatHistory to Message format
-const initialMessages: Message[] = aiChatHistory.map((m) => ({
-  role: m.role as "user" | "assistant",
-  content: m.content,
-  timestamp: m.timestamp,
-  id: m.id || `${Math.random()}`,
-}));
+const initialMessages: Message[] = aiChatHistory.flatMap((conv) =>
+  conv.messages.map((m) => ({
+    role: m.role as "user" | "assistant",
+    content: m.content,
+    timestamp: m.timestamp,
+    id: m.id || `${Math.random()}`,
+  }))
+);
 
 export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>(initialMessages)

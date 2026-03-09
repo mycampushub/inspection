@@ -104,7 +104,7 @@ export default function Dashboard() {
     suppliersFromUAE: Math.floor(stats.totalSuppliers * 0.4),
     icvCertifiedSuppliers: Math.floor(stats.totalSuppliers * 0.6),
     isoCertifiedSuppliers: Math.floor(stats.totalSuppliers * 0.8),
-    upcomingContracts: stats.expiringContracts,
+    upcomingContracts: stats.upcomingContracts.length,
     pendingRequests: stats.pendingRequests,
     activeRfx: 12,
   })
