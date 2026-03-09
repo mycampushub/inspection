@@ -498,7 +498,14 @@ export default function ReportingAnalytics() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [dashboardName, setDashboardName] = useState("My Dashboard")
-  const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(defaultDashboard)
+  const [dashboardWidgets, setDashboardWidgets] = useState<string[]>(() => {
+    // Try to load from localStorage if available
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("dashboardWidgets")
+      return saved ? JSON.parse(saved) : defaultDashboard
+    }
+    return defaultDashboard
+  })
   const [showFilters, setShowFilters] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -537,14 +544,19 @@ export default function ReportingAnalytics() {
     // Simulate refresh delay
     setTimeout(() => {
       setIsRefreshing(false)
-      // Dashboard is in-memory, no need to reload
+      // Reload widgets from localStorage
+      const saved = localStorage.getItem("dashboardWidgets")
+      if (saved) {
+        setDashboardWidgets(JSON.parse(saved))
+      }
     }, 1000)
   }
 
   // Handle save
   const handleSave = () => {
-    // Dashboard is in-memory only, not persisting to localStorage
-    alert("Dashboard saved (in-memory)!")
+    localStorage.setItem("dashboardName", dashboardName)
+    localStorage.setItem("dashboardWidgets", JSON.stringify(dashboardWidgets))
+    alert("Dashboard saved successfully!")
   }
 
   // Handle share
@@ -567,7 +579,7 @@ export default function ReportingAnalytics() {
   const handleRenameDashboard = () => {
     if (newDashboardName.trim()) {
       setDashboardName(newDashboardName)
-      // Dashboard is in-memory only, not persisting to localStorage
+      localStorage.setItem("dashboardName", newDashboardName)
       setIsRenameDialogOpen(false)
       setNewDashboardName("")
     }
@@ -606,7 +618,8 @@ export default function ReportingAnalytics() {
     if (confirm("Are you sure you want to reset to the default dashboard?")) {
       setDashboardWidgets(defaultDashboard)
       setDashboardName("My Dashboard")
-      // Dashboard is in-memory only, not using localStorage
+      localStorage.removeItem("dashboardWidgets")
+      localStorage.removeItem("dashboardName")
     }
   }
 

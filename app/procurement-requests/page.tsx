@@ -355,9 +355,8 @@ export default function ProcurementRequests() {
   
   // Render table
   const renderTable = (data: LocalProcurementItem[]) => (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table className="w-full min-w-[800px]">
+    <div className="rounded-md border">
+      <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[50px]">
@@ -487,7 +486,6 @@ export default function ProcurementRequests() {
         </TableBody>
       </Table>
     </div>
-    </div>
   )
   
   return (
@@ -530,7 +528,7 @@ export default function ProcurementRequests() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2 w-full max-w-sm">
                       <Search className="h-4 w-4 text-muted-foreground" />
                       <Input
@@ -540,9 +538,9 @@ export default function ProcurementRequests() {
                         className="h-9"
                       />
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                        <SelectTrigger className="w-full sm:w-[180px] h-9">
+                        <SelectTrigger className="w-[180px] h-9">
                           <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -554,7 +552,7 @@ export default function ProcurementRequests() {
                         </SelectContent>
                       </Select>
                       <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-                        <SelectTrigger className="w-full sm:w-[180px] h-9">
+                        <SelectTrigger className="w-[180px] h-9">
                           <SelectValue placeholder="Filter by priority" />
                         </SelectTrigger>
                         <SelectContent>
@@ -588,9 +586,7 @@ export default function ProcurementRequests() {
                       <div className="text-muted-foreground">Loading...</div>
                     </div>
                   ) : (
-                    <div className="max-h-[calc(100vh-400px)] overflow-y-auto">
-                      {renderTable(filteredRequests)}
-                    </div>
+                    renderTable(filteredRequests)
                   )}
                 </CardContent>
               </Card>
@@ -601,13 +597,13 @@ export default function ProcurementRequests() {
       
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Procurement Request</DialogTitle>
             <DialogDescription>Fill in the details to create a new procurement request.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
                 <Input
@@ -627,7 +623,7 @@ export default function ProcurementRequests() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="department">Department *</Label>
                 <Input
@@ -669,7 +665,7 @@ export default function ProcurementRequests() {
             <div className="space-y-2">
               <Label>Items</Label>
               <div className="border rounded-lg p-4 space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <Input
                     placeholder="Item name"
                     value={newItem.name}
@@ -741,13 +737,13 @@ export default function ProcurementRequests() {
       
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Procurement Request</DialogTitle>
             <DialogDescription>Update the procurement request details.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-title">Title *</Label>
                 <Input
@@ -767,7 +763,7 @@ export default function ProcurementRequests() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-department">Department *</Label>
                 <Input
@@ -809,7 +805,7 @@ export default function ProcurementRequests() {
             <div className="space-y-2">
               <Label>Items</Label>
               <div className="border rounded-lg p-4 space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <Input
                     placeholder="Item name"
                     value={newItem.name}
@@ -881,14 +877,14 @@ export default function ProcurementRequests() {
       
       {/* View Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Request Details</DialogTitle>
             <DialogDescription>Full details of the procurement request.</DialogDescription>
           </DialogHeader>
           {selectedRequest && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Request ID</Label>
                   <p className="font-medium">{selectedRequest.id}</p>
@@ -902,7 +898,7 @@ export default function ProcurementRequests() {
                 <Label className="text-muted-foreground">Title</Label>
                 <p className="font-medium">{selectedRequest.title}</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Requester</Label>
                   <p className="font-medium">{selectedRequest.requester}</p>
@@ -912,7 +908,7 @@ export default function ProcurementRequests() {
                   <p className="font-medium">{selectedRequest.department}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Status</Label>
                   <Badge

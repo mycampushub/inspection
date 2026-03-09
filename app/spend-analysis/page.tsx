@@ -165,9 +165,17 @@ export default function SpendAnalysis() {
     }
   }
 
+  // Load saved views from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('spendAnalysisViews')
+    if (saved) {
+      setSavedViews(JSON.parse(saved))
+    }
+  }, [])
+
   // No need to fetch on mount - using local data
   // Data is already loaded from local-data
-
+  
   // For timeframe changes, we could adjust the local data if needed
   // For now, keeping it simple with the default local data
 
@@ -207,7 +215,7 @@ export default function SpendAnalysis() {
       }
       const updatedViews = [...savedViews, newView]
       setSavedViews(updatedViews)
-      // Data is in-memory only, not persisting to localStorage
+      localStorage.setItem('spendAnalysisViews', JSON.stringify(updatedViews))
       setIsSaveViewOpen(false)
       setViewName('')
     }
@@ -313,7 +321,7 @@ export default function SpendAnalysis() {
         <div className="flex items-center text-lg font-semibold">Spend Analysis</div>
         <div className="ml-auto flex items-center gap-4">
           <Select value={timeframe} onValueChange={handleTimeframeChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select timeframe" />
             </SelectTrigger>
             <SelectContent>
@@ -404,11 +412,11 @@ export default function SpendAnalysis() {
       {/* Filter Panel */}
       {showFilters && (
         <div className="border-b bg-muted/50 p-4">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium">Category:</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -422,7 +430,7 @@ export default function SpendAnalysis() {
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium">Supplier:</Label>
               <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -436,7 +444,7 @@ export default function SpendAnalysis() {
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium">Department:</Label>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

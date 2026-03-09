@@ -262,7 +262,7 @@ export default function SupplierDirectory() {
           {showFilters && (
             <div className="flex flex-wrap items-center gap-2">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-[180px] h-9">
+                <SelectTrigger className="w-[180px] h-9">
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -275,7 +275,7 @@ export default function SupplierDirectory() {
                 </SelectContent>
               </Select>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-full sm:w-[180px] h-9">
+                <SelectTrigger className="w-[180px] h-9">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -288,7 +288,7 @@ export default function SupplierDirectory() {
                 </SelectContent>
               </Select>
               <Select value={selectedTier} onValueChange={setSelectedTier}>
-                <SelectTrigger className="w-full sm:w-[180px] h-9">
+                <SelectTrigger className="w-[180px] h-9">
                   <SelectValue placeholder="Filter by tier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -321,7 +321,7 @@ export default function SupplierDirectory() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                       <div className="flex items-start gap-4">
                         <Avatar className="h-12 w-12 border">
-                          <AvatarFallback>{supplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
+                          <AvatarFallback>{supplier.name.substring(0, 2)}</AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -478,7 +478,7 @@ export default function SupplierDirectory() {
                               </div>
                               <div>
                                 <h4 className="text-sm font-medium mb-2">Contact Details</h4>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm">
+                                <dl className="grid grid-cols-2 gap-1 text-sm">
                                   <dt className="text-muted-foreground">Contact Name:</dt>
                                   <dd>{supplier.contactPerson}</dd>
                                   <dt className="text-muted-foreground">Email:</dt>
@@ -506,7 +506,7 @@ export default function SupplierDirectory() {
                             <div className="space-y-4">
                               <div>
                                 <h4 className="text-sm font-medium mb-2">Business Details</h4>
-                                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm">
+                                <dl className="grid grid-cols-2 gap-1 text-sm">
                                   <dt className="text-muted-foreground">Rating:</dt>
                                   <dd>{supplier.rating} / 5</dd>
                                   <dt className="text-muted-foreground">Risk Level:</dt>
@@ -619,14 +619,14 @@ export default function SupplierDirectory() {
                         <TabsContent value="documents" className="space-y-4 mt-4">
                           {supplier.documents && supplier.documents.length > 0 ? (
                             <div className="border rounded-md overflow-hidden">
-                              <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 p-3 bg-muted/50 text-sm font-medium">
+                              <div className="grid grid-cols-12 gap-4 p-3 bg-muted/50 text-sm font-medium">
                                 <div className="col-span-5">Document Name</div>
                                 <div className="col-span-3">Type</div>
                                 <div className="col-span-2">Uploaded By</div>
                                 <div className="col-span-2 text-right">Actions</div>
                               </div>
                               {supplier.documents.map((doc) => (
-                                <div key={doc.id} className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 p-3 border-t text-sm items-center">
+                                <div key={doc.id} className="grid grid-cols-12 gap-4 p-3 border-t text-sm items-center">
                                   <div className="col-span-5">
                                     <div className="font-medium">{doc.name}</div>
                                     <div className="text-xs text-muted-foreground">{(doc.size / 1024).toFixed(2)} KB</div>
@@ -663,7 +663,7 @@ export default function SupplierDirectory() {
 
                         <TabsContent value="contracts" className="space-y-4 mt-4">
                           <div className="border rounded-md overflow-hidden">
-                            <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 p-3 bg-muted/50 text-sm font-medium">
+                            <div className="grid grid-cols-12 gap-4 p-3 bg-muted/50 text-sm font-medium">
                               <div className="col-span-4">Contract ID</div>
                               <div className="col-span-2">Category</div>
                               <div className="col-span-2">Value</div>
@@ -672,7 +672,7 @@ export default function SupplierDirectory() {
                             </div>
                             {supplier.contracts && supplier.contracts.length > 0 ? (
                               supplier.contracts.map((contractId) => (
-                                <div key={contractId} className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 p-3 border-t text-sm items-center">
+                                <div key={contractId} className="grid grid-cols-12 gap-4 p-3 border-t text-sm items-center">
                                   <div className="col-span-4 font-medium">{contractId}</div>
                                   <div className="col-span-2">{supplier.category}</div>
                                   <div className="col-span-2">
@@ -728,7 +728,7 @@ export default function SupplierDirectory() {
 
       {/* Create Supplier Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Supplier</DialogTitle>
             <DialogDescription>Fill in the details to add a new supplier to the directory.</DialogDescription>
@@ -743,7 +743,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter supplier name"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="type">Type</Label>
                 <Select
@@ -786,7 +786,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter supplier category"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
@@ -829,7 +829,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter contact person name"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -859,7 +859,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter street address"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="city">City</Label>
                 <Input
@@ -905,7 +905,7 @@ export default function SupplierDirectory() {
 
       {/* Edit Supplier Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Supplier</DialogTitle>
             <DialogDescription>Update the supplier information.</DialogDescription>
@@ -920,7 +920,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter supplier name"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-type">Type</Label>
                 <Select
@@ -963,7 +963,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter supplier category"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-status">Status</Label>
                 <Select
@@ -1006,7 +1006,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter contact person name"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-email">Email</Label>
                 <Input
@@ -1036,7 +1036,7 @@ export default function SupplierDirectory() {
                 placeholder="Enter street address"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-city">City</Label>
                 <Input
@@ -1082,13 +1082,13 @@ export default function SupplierDirectory() {
 
       {/* View Profile Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedSupplier?.name}</DialogTitle>
             <DialogDescription>Supplier ID: {selectedSupplier?.id}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="p-4 pb-2">
                   <CardDescription>Performance</CardDescription>
@@ -1251,7 +1251,7 @@ export default function SupplierDirectory() {
 
       {/* Contact Supplier Dialog */}
       <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Contact Supplier</DialogTitle>
             <DialogDescription>Send a message to {selectedSupplier?.name}</DialogDescription>
@@ -1288,13 +1288,13 @@ export default function SupplierDirectory() {
 
       {/* Schedule Meeting Dialog */}
       <Dialog open={isMeetingDialogOpen} onOpenChange={setIsMeetingDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Schedule Meeting</DialogTitle>
             <DialogDescription>Schedule a meeting with {selectedSupplier?.name}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="meeting-date">Date</Label>
                 <Input
@@ -1336,7 +1336,7 @@ export default function SupplierDirectory() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
             <DialogDescription>

@@ -70,8 +70,19 @@ export default function AIAssistant() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // No need to load from localStorage - data is in-memory from aiChatHistory
-  // Conversation history is already loaded from aiChatHistory
+  // Load saved data from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('ai-assistant-saved')
+    if (saved) {
+      try {
+        setSavedResponses(JSON.parse(saved))
+      } catch (e) {
+        console.error('Failed to load saved responses:', e)
+      }
+    }
+
+    // Conversation history is already loaded from aiChatHistory
+  }, [])
 
   // Save current conversation to history periodically
   useEffect(() => {
@@ -92,7 +103,7 @@ export default function AIAssistant() {
           ? [...conversationHistory, currentHistory]
           : conversationHistory.map(h => h.id === 'current' ? currentHistory : h)
         setConversationHistory(newHistory)
-        // Conversation history is in-memory only, not persisting to localStorage
+        localStorage.setItem('ai-assistant-history', JSON.stringify(newHistory))
       }
     }
   }, [messages])
@@ -199,7 +210,7 @@ export default function AIAssistant() {
     
     const updatedSaved = [...savedResponses, newSaved]
     setSavedResponses(updatedSaved)
-    // Saved responses are in-memory only, not persisting to localStorage
+    localStorage.setItem('ai-assistant-saved', JSON.stringify(updatedSaved))
   }
 
   const handleCopyToClipboard = async (content: string) => {
@@ -238,7 +249,7 @@ export default function AIAssistant() {
   const handleDeleteSavedResponse = (id: string) => {
     const updatedSaved = savedResponses.filter(s => s.id !== id)
     setSavedResponses(updatedSaved)
-    // Saved responses are in-memory only, not persisting to localStorage
+    localStorage.setItem('ai-assistant-saved', JSON.stringify(updatedSaved))
   }
 
   const handleLoadConversation = (conversationId: string) => {
@@ -253,7 +264,7 @@ export default function AIAssistant() {
   const handleDeleteConversation = (id: string) => {
     const updatedHistory = conversationHistory.filter(c => c.id !== id)
     setConversationHistory(updatedHistory)
-    // Conversation history is in-memory only, not persisting to localStorage
+    localStorage.setItem('ai-assistant-history', JSON.stringify(updatedHistory))
     
     if (selectedConversationId === id) {
       setSelectedConversationId(null)
