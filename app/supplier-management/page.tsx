@@ -263,23 +263,23 @@ export default function SupplierManagement() {
     try {
       let filtered = localSuppliers.map((s) => ({
         id: s.id,
-        name: s.name,
+        name: s.name || "Unknown",
         logo: "",
-        category: s.category,
-        status: s.status,
-        tier: s.tier,
-        location: `${s.city}, ${s.country}`,
-        contactName: s.contactPerson,
-        contactEmail: s.email,
-        contactPhone: s.phone,
-        performanceScore: Math.round((s.onTimeDelivery + s.qualityScore + s.communicationScore) / 3),
-        riskLevel: s.riskLevel,
-        activeContracts: s.contracts.length,
-        totalSpend: s.totalSpend,
-        onTimeDelivery: s.onTimeDelivery,
-        qualityScore: s.qualityScore,
+        category: s.category || "Other",
+        status: s.status || "Active",
+        tier: s.tier || "Tier 3",
+        location: `${s.city || ""}, ${s.country || ""}`,
+        contactName: s.contactPerson || "",
+        contactEmail: s.email || "",
+        contactPhone: s.phone || "",
+        performanceScore: Math.round(((s.onTimeDelivery || 0) + (s.qualityScore || 0) + (s.communicationScore || 0)) / 3),
+        riskLevel: s.riskLevel || "Low",
+        activeContracts: s.contracts?.length || 0,
+        totalSpend: s.totalSpend || 0,
+        onTimeDelivery: s.onTimeDelivery || 0,
+        qualityScore: s.qualityScore || 0,
         responseTime: Math.floor(12 + Math.random() * 48),
-        certifications: s.certifications,
+        certifications: s.certifications || [],
       }))
 
       // Apply filters
@@ -297,10 +297,10 @@ export default function SupplierManagement() {
       if (searchQuery) {
         filtered = filtered.filter(
           (s) =>
-            s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.contactEmail.toLowerCase().includes(searchQuery.toLowerCase())
+            (s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.id || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.contactPerson || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.email || "").toLowerCase().includes(searchQuery.toLowerCase())
         )
       }
 
@@ -463,10 +463,10 @@ export default function SupplierManagement() {
   // Get filtered suppliers based on search query (client-side filtering for demo)
   const filteredSuppliers = suppliers.filter(
     (s) =>
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.contactEmail.toLowerCase().includes(searchQuery.toLowerCase())
+      (s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.id || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.contactPerson || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.email || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   // Calculate stats from real data
@@ -475,7 +475,7 @@ export default function SupplierManagement() {
     ? Math.round(suppliers.reduce((sum, s) => sum + s.performanceScore, 0) / suppliers.length)
     : 0
   const highRiskCount = suppliers.filter((s) => s.riskLevel === "High").length
-  const activeContracts = suppliers.reduce((sum, s) => sum + s.activeContracts, 0)
+  const activeContracts = suppliers.reduce((sum, s) => sum + (s.activeContracts || 0), 0)
 
   return (
     <SidebarInset>
@@ -805,7 +805,7 @@ export default function SupplierManagement() {
                             <div className="flex items-start gap-4">
                               <Avatar className="h-12 w-12 border">
                                 <AvatarImage src={supplier.logo || "/placeholder.svg"} alt={supplier.name} />
-                                <AvatarFallback>{supplier.name.substring(0, 2)}</AvatarFallback>
+                                <AvatarFallback>{supplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
                               </Avatar>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
@@ -968,7 +968,7 @@ export default function SupplierManagement() {
                               <div className="flex items-start gap-4">
                                 <Avatar className="h-12 w-12 border">
                                   <AvatarImage src={supplier.logo || "/placeholder.svg"} alt={supplier.name} />
-                                  <AvatarFallback>{supplier.name.substring(0, 2)}</AvatarFallback>
+                                  <AvatarFallback>{supplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <h3 className="font-semibold">{supplier.name}</h3>
@@ -1187,7 +1187,7 @@ export default function SupplierManagement() {
                                 <div className="flex items-start gap-4">
                                   <Avatar className="h-12 w-12 border">
                                     <AvatarImage src={supplier.logo || "/placeholder.svg"} alt={supplier.name} />
-                                    <AvatarFallback>{supplier.name.substring(0, 2)}</AvatarFallback>
+                                    <AvatarFallback>{supplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
                                   </Avatar>
                                   <div>
                                     <h3 className="font-semibold">{supplier.name}</h3>
@@ -1494,7 +1494,7 @@ export default function SupplierManagement() {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16 border">
                     <AvatarImage src={selectedSupplier.logo || "/placeholder.svg"} alt={selectedSupplier.name} />
-                    <AvatarFallback>{selectedSupplier.name.substring(0, 2)}</AvatarFallback>
+                    <AvatarFallback>{selectedSupplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
                   </Avatar>
                   <div>
                     <h3 className="text-xl font-semibold">{selectedSupplier.name}</h3>
@@ -1848,7 +1848,7 @@ export default function SupplierManagement() {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16 border">
                       <AvatarImage src={selectedSupplier.logo || "/placeholder.svg"} alt={selectedSupplier.name} />
-                      <AvatarFallback>{selectedSupplier.name.substring(0, 2)}</AvatarFallback>
+                      <AvatarFallback>{selectedSupplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold">{selectedSupplier.name}</h3>

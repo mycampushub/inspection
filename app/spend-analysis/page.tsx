@@ -165,17 +165,9 @@ export default function SpendAnalysis() {
     }
   }
 
-  // Load saved views from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('spendAnalysisViews')
-    if (saved) {
-      setSavedViews(JSON.parse(saved))
-    }
-  }, [])
-
   // No need to fetch on mount - using local data
   // Data is already loaded from local-data
-  
+
   // For timeframe changes, we could adjust the local data if needed
   // For now, keeping it simple with the default local data
 
@@ -215,7 +207,7 @@ export default function SpendAnalysis() {
       }
       const updatedViews = [...savedViews, newView]
       setSavedViews(updatedViews)
-      localStorage.setItem('spendAnalysisViews', JSON.stringify(updatedViews))
+      // Data is in-memory only, not persisting to localStorage
       setIsSaveViewOpen(false)
       setViewName('')
     }

@@ -321,7 +321,7 @@ export default function SupplierDirectory() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                       <div className="flex items-start gap-4">
                         <Avatar className="h-12 w-12 border">
-                          <AvatarFallback>{supplier.name.substring(0, 2)}</AvatarFallback>
+                          <AvatarFallback>{supplier.name?.substring(0, 2) || "NA"}</AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">

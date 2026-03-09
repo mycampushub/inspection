@@ -104,23 +104,23 @@ interface PerformanceIssue {
 
 export default function SupplierPerformance() {
   // Convert local Evaluation to PerformanceEvaluation format
-  const initialEvaluations: PerformanceEvaluation[] = localEvaluations.map((eval) => ({
-    id: eval.id,
-    supplierId: eval.supplierId,
-    supplierName: eval.supplierName,
-    category: eval.category,
-    evaluationDate: eval.evaluatedAt.split("T")[0],
-    evaluatedBy: eval.evaluatedBy,
-    overallScore: eval.overallScore,
-    qualityScore: eval.qualityOfGoods,
-    deliveryScore: eval.onTimeDelivery,
-    costScore: eval.pricing,
-    serviceScore: eval.customerService,
-    complianceScore: eval.compliance,
+  const initialEvaluations: PerformanceEvaluation[] = localEvaluations.map((evaluation) => ({
+    id: evaluation.id,
+    supplierId: evaluation.supplierId,
+    supplierName: evaluation.supplierName,
+    category: evaluation.category,
+    evaluationDate: evaluation.evaluatedAt.split("T")[0],
+    evaluatedBy: evaluation.evaluatedBy,
+    overallScore: evaluation.overallScore,
+    qualityScore: evaluation.qualityOfGoods,
+    deliveryScore: evaluation.onTimeDelivery,
+    costScore: evaluation.pricing,
+    serviceScore: evaluation.customerService,
+    complianceScore: evaluation.compliance,
     innovationScore: 80, // Default value
-    status: eval.status === "Completed" ? "Approved" : eval.status === "In Progress" ? "Submitted" : "Draft",
-    comments: eval.comments[0]?.text || "",
-    issues: eval.issues.map((issue) => ({
+    status: evaluation.status === "Completed" ? "Approved" : evaluation.status === "In Progress" ? "Submitted" : "Draft",
+    comments: evaluation.comments[0]?.text || "",
+    issues: evaluation.issues.map((issue) => ({
       id: `ISS-${issue.id}`,
       type: issue.title,
       description: issue.description,
