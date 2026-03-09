@@ -313,7 +313,7 @@ export default function SpendAnalysis() {
         <div className="flex items-center text-lg font-semibold">Spend Analysis</div>
         <div className="ml-auto flex items-center gap-4">
           <Select value={timeframe} onValueChange={handleTimeframeChange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Select timeframe" />
             </SelectTrigger>
             <SelectContent>
@@ -404,11 +404,11 @@ export default function SpendAnalysis() {
       {/* Filter Panel */}
       {showFilters && (
         <div className="border-b bg-muted/50 p-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium">Category:</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -422,7 +422,7 @@ export default function SpendAnalysis() {
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium">Supplier:</Label>
               <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -436,7 +436,7 @@ export default function SpendAnalysis() {
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium">Department:</Label>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

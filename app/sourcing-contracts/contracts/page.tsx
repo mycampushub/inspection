@@ -850,7 +850,7 @@ Uploaded By: ${doc.uploadedBy}
       </div>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
@@ -858,9 +858,9 @@ Uploaded By: ${doc.uploadedBy}
               <TabsTrigger value="expired">Expired</TabsTrigger>
               <TabsTrigger value="expiring-soon">Expiring Soon</TabsTrigger>
             </TabsList>
-            <div className={`flex items-center gap-2 transition-all ${showFilters ? "opacity-100" : "opacity-50"}`}>
+            <div className={`flex flex-wrap items-center gap-2 transition-all ${showFilters ? "opacity-100" : "opacity-50"}`}>
               <Select value={contractTypeFilter} onValueChange={handleContractTypeFilterChange}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Contract Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -873,7 +873,7 @@ Uploaded By: ${doc.uploadedBy}
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-full sm:w-[150px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -885,7 +885,7 @@ Uploaded By: ${doc.uploadedBy}
                   ))}
                 </SelectContent>
               </Select>
-              <div className="relative w-[250px]">
+              <div className="relative w-full sm:w-[250px]">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
@@ -919,7 +919,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Create Contract Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Contract</DialogTitle>
             <DialogDescription>Fill in the details to create a new contract.</DialogDescription>
@@ -949,7 +949,7 @@ Uploaded By: ${doc.uploadedBy}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="type">Type *</Label>
                 <Select value={formData.type} onValueChange={(value: string) => setFormData({ ...formData, type: value })}>
@@ -981,7 +981,7 @@ Uploaded By: ${doc.uploadedBy}
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="value">Value *</Label>
                 <Input
@@ -1008,7 +1008,7 @@ Uploaded By: ${doc.uploadedBy}
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="startDate">Start Date *</Label>
                 <Input
@@ -1094,7 +1094,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Edit Contract Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Contract</DialogTitle>
             <DialogDescription>Update the contract details.</DialogDescription>
@@ -1124,7 +1124,7 @@ Uploaded By: ${doc.uploadedBy}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-type">Type *</Label>
                 <Select value={formData.type} onValueChange={(value: string) => setFormData({ ...formData, type: value })}>
@@ -1156,7 +1156,7 @@ Uploaded By: ${doc.uploadedBy}
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-value">Value *</Label>
                 <Input
@@ -1183,7 +1183,7 @@ Uploaded By: ${doc.uploadedBy}
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="edit-startDate">Start Date *</Label>
                 <Input
@@ -1269,14 +1269,14 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* View Contract Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Contract Details</DialogTitle>
             <DialogDescription>View all contract information</DialogDescription>
           </DialogHeader>
           {selectedContract && (
             <div className="grid gap-6 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground text-sm">Contract ID</Label>
                   <p className="font-medium">{selectedContract.id}</p>
@@ -1319,7 +1319,7 @@ Uploaded By: ${doc.uploadedBy}
 
               <div>
                 <h4 className="font-semibold mb-3">Supplier Information</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-muted-foreground text-sm">Supplier ID</Label>
                     <p className="font-medium">{selectedContract.supplierId}</p>
@@ -1335,7 +1335,7 @@ Uploaded By: ${doc.uploadedBy}
 
               <div>
                 <h4 className="font-semibold mb-3">Value & Terms</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-muted-foreground text-sm">Value</Label>
                     <p className="font-medium">
@@ -1364,7 +1364,7 @@ Uploaded By: ${doc.uploadedBy}
 
               <div>
                 <h4 className="font-semibold mb-3">Contract Clauses</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <Checkbox checked={selectedContract.hasLocalSupplier} disabled />
                     <span className="text-sm">Local Supplier</span>
@@ -1470,7 +1470,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Renew Contract Dialog */}
       <Dialog open={isRenewDialogOpen} onOpenChange={setIsRenewDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Renew Contract</DialogTitle>
             <DialogDescription>
@@ -1527,7 +1527,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Amend Contract Dialog */}
       <Dialog open={isAmendDialogOpen} onOpenChange={setIsAmendDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Amend Contract</DialogTitle>
             <DialogDescription>
@@ -1584,7 +1584,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Terminate Contract Dialog */}
       <Dialog open={isTerminateDialogOpen} onOpenChange={setIsTerminateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-destructive">Terminate Contract</DialogTitle>
             <DialogDescription>
@@ -1628,7 +1628,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Delete Contract Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete Contract</DialogTitle>
             <DialogDescription>
@@ -1662,7 +1662,7 @@ Uploaded By: ${doc.uploadedBy}
 
       {/* Document View Dialog */}
       <Dialog open={isDocumentViewDialogOpen} onOpenChange={setIsDocumentViewDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Document Details</DialogTitle>
           </DialogHeader>
@@ -1675,7 +1675,7 @@ Uploaded By: ${doc.uploadedBy}
                       <Label className="text-muted-foreground text-sm">Document Name</Label>
                       <p className="font-medium">{selectedDocument.name}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-muted-foreground text-sm">Type</Label>
                         <p className="font-medium">{selectedDocument.type}</p>

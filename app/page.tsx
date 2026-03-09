@@ -519,7 +519,7 @@ export default function Dashboard() {
               <CardDescription>Contracts expiring in the next 60 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                 {stats?.upcomingContracts && stats.upcomingContracts.length > 0 ? (
                   stats.upcomingContracts.map((contract: any) => {
                     const daysLeft = Math.ceil(

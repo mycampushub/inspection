@@ -3541,3 +3541,92 @@ Build Result: SUCCESS
 - All dependencies compatible with React 19
 - Clean build with no warnings about peer dependencies
 
+
+---
+
+## Task ID: responsiveness-fix
+**Agent:** Code Agent
+**Task:** Fix ALL responsiveness, layout, and viewport issues in the procurement app
+
+### Work Summary
+
+Successfully fixed all responsiveness, layout, and viewport issues across 4 critical pages in the procurement application. Implemented mobile-first responsive design patterns following the specified requirements.
+
+### Pages Fixed
+
+#### 1. `/app/procurement-requests/page.tsx`
+**Changes Made:**
+- Fixed filter bar with `flex flex-wrap` and `flex-col sm:flex-row` for responsive layout
+- Updated fixed width SelectTriggers from `w-[180px]` to `w-full sm:w-[180px]`
+- Fixed all grid layouts: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`
+- Fixed items input grid: `grid-cols-4` → `grid-cols-1 sm:grid-cols-2 md:grid-cols-4`
+- Updated all DialogContent to `max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto`
+- Wrapped Table in `overflow-x-auto` div with `min-w-[600px]` class
+
+#### 2. `/app/sourcing-contracts/contracts/page.tsx`
+**Changes Made:**
+- Fixed filter bar with `flex flex-wrap items-center` and responsive row layout
+- Updated all fixed widths:
+  - `w-[180px]` → `w-full sm:w-[180px]`
+  - `w-[150px]` → `w-full sm:w-[150px]`
+  - `w-[250px]` → `w-full sm:w-[250px]`
+- Fixed all grid layouts: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`
+- Updated ALL DialogContent instances (Create, Edit, View, Renew, Amend, Terminate, Delete, Document View) to `max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto`
+
+#### 3. `/app/supplier-management/directory/page.tsx`
+**Changes Made:**
+- Fixed filter bar with `flex flex-wrap` (already had this, verified it's correct)
+- Updated all fixed width SelectTriggers: `w-[180px] h-9` → `w-full sm:w-[180px] h-9`
+- Fixed all grid layouts:
+  - `grid-cols-2 gap-4` → `grid-cols-1 sm:grid-cols-2 gap-4`
+  - `grid-cols-4 gap-4` → `grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4`
+  - `grid-cols-12 gap-4` → `grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4`
+- Updated ALL DialogContent instances (Create, Edit, View, Contact, Meeting, Delete) to responsive widths with `max-w-[95vw] sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto`
+
+#### 4. `/app/spend-analysis/page.tsx`
+**Changes Made:**
+- Fixed filter panel with `flex flex-wrap items-center` for responsive layout
+- Updated all fixed width SelectTriggers: `w-[180px]` → `w-full sm:w-[180px]`
+- Chart containers already use ResponsiveContainer from recharts which handles resizing
+
+### Key Responsive Design Patterns Applied
+
+1. **Mobile-First Approach**: All elements use full width on mobile (w-full) with breakpoints for larger screens
+2. **Breakpoint Strategy**:
+   - `sm:` (640px) - Small tablets and larger phones
+   - `md:` (768px) - Tablets
+   - `lg:` (1024px) - Small laptops
+3. **Filter Bars**: All use `flex-wrap` to wrap elements on smaller screens
+4. **Dialogs**: All dialogs use `max-w-[95vw]` on mobile and appropriate max widths on larger screens
+5. **Grid Layouts**: Progressive enhancement from 1 column on mobile to multiple columns on larger screens
+6. **Tables**: Wrapped in overflow containers with `min-w-[600px]` to enable horizontal scrolling on mobile
+
+### Testing Notes
+- All changes maintain existing functionality
+- No breaking changes to component behavior
+- Dialogs are now fully responsive on all screen sizes
+- Filter bars properly wrap on mobile screens
+- Charts use ResponsiveContainer for automatic resizing
+
+### Files Modified
+- `/home/z/my-project/app/procurement-requests/page.tsx`
+- `/home/z/my-project/app/sourcing-contracts/contracts/page.tsx`
+- `/home/z/my-project/app/supplier-management/directory/page.tsx`
+- `/home/z/my-project/app/spend-analysis/page.tsx`
+
+All responsiveness issues identified in the requirements have been addressed. The application is now fully responsive across all four critical pages.
+
+---
+Task ID: responsiveness-fixes
+Agent: Code Agent
+Task: Fix all responsiveness issues across the application
+
+Work Summary:
+Fixed critical responsiveness issues including sidebar collapse handling, table overflow, chart containers, and long content lists.
+
+Stage Summary:
+- Fixed main layout structure in app/layout.tsx to properly handle sidebar collapse
+- Fixed table overflow issues with proper responsive wrappers
+- Fixed chart and diagram overflow with proper container constraints
+- Added max-height and scroll handling for long content lists
+- Verified all detail tabs have proper data

@@ -24,9 +24,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light">
           <SidebarProvider>
-            <div className="flex min-h-screen">
+            <div className="flex min-h-screen w-full">
               <AppSidebar />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 min-w-0 overflow-hidden">
+                {children}
+              </main>
             </div>
           </SidebarProvider>
         </ThemeProvider>
