@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import {
   AlertCircle,
@@ -65,19 +65,6 @@ interface ContractDocument {
   uploadedBy: string
 }
 
-interface ContractMilestone {
-  id: number
-  name: string
-  dueDate: string
-  status: "Completed" | "In Progress" | "Pending" | "Overdue"
-  amount?: number
-}
-
-interface Supplier {
-  id: string
-  name: string
-}
-
 const CONTRACT_TYPES = [
   "Statement of Work",
   "Services Agreement",
@@ -97,7 +84,7 @@ const CURRENCIES = ["USD", "AED", "EUR", "GBP"]
 
 export default function ContractRepository() {
   const [contracts, setContracts] = useState<Contract[]>(localContracts)
-  const [suppliers, setSuppliers] = useState(localSuppliers)
+  const [suppliers] = useState(localSuppliers)
   const [selectedTab, setSelectedTab] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [contractTypeFilter, setContractTypeFilter] = useState("all")
@@ -152,11 +139,6 @@ export default function ContractRepository() {
   // Fetch contracts - now uses local data filtering
   const fetchContracts = async () => {
     setLoading(false)
-  }
-
-  // Fetch suppliers - now uses local data, no API call needed
-  const fetchSuppliers = async () => {
-    // Suppliers already loaded from local data
   }
 
   // Filters are applied in client-side rendering, no refetch needed

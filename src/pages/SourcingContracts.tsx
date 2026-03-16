@@ -16,7 +16,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  SlidersHorizontal,
   Download,
   Eye,
   Bell,
@@ -71,7 +70,7 @@ interface RfxEvent {
   budget: number
   createdBy: string
   createdDate: string
-  responses?: any[]
+  responses?: unknown[]
 }
 
 interface Contract {
@@ -93,8 +92,8 @@ interface Contract {
   hasRenewalClause?: boolean
   hasTerminationClause?: boolean
   signedByCEO?: boolean
-  milestones?: Array<any>
-  documents?: Array<any>
+  milestones?: Array<unknown>
+  documents?: Array<unknown>
 }
 
 export default function SourcingContracts() {
@@ -105,7 +104,7 @@ export default function SourcingContracts() {
   const [showFilters, setShowFilters] = useState(false)
   
   // RFx state
-  const [rfxEvents, setRfxEvents] = useState<RfxEvent[]>(localRfxEvents)
+  const [rfxEvents] = useState<RfxEvent[]>(localRfxEvents)
   const [rfxTypeFilter, setRfxTypeFilter] = useState("all")
   const [rfxStatusFilter, setRfxStatusFilter] = useState("all")
   
@@ -169,17 +168,20 @@ export default function SourcingContracts() {
   }
 
   // Initial data load
+  // eslint-disable-next-line react-hooks/purity
   useEffect(() => {
     fetchAllData()
   }, [])
 
   // Refetch when filters or search change (using local data)
+  // eslint-disable-next-line react-hooks/purity
   useEffect(() => {
     fetchRfxEvents()
     fetchContracts()
-  }, [rfxTypeFilter, rfxStatusFilter, contractTypeFilter, contractStatusFilter, searchQuery])
+  }, [rfxTypeFilter, rfxStatusFilter, contractTypeFilter, contractStatusFilter, searchQuery, fetchRfxEvents, fetchContracts])
 
   // Update stats when data changes
+  // eslint-disable-next-line react-hooks/purity
   useEffect(() => {
     const activeContractsCount = contracts.filter(c => c.status === "Active").length
     const expiringSoonCount = contracts.filter(c => c.status === "Expiring Soon").length
@@ -191,7 +193,7 @@ export default function SourcingContracts() {
       expiringContracts: expiringSoonCount,
       totalContractValue: totalValue,
     })
-  }, [rfxEvents, contracts])
+  }, [rfxEvents, contracts, setStats])
 
   // Get contracts expiring soon
   const getExpiringContracts = () => {
@@ -215,7 +217,7 @@ export default function SourcingContracts() {
   }
 
   // Download CSV
-  const downloadCSV = (data: any[], filename: string) => {
+  const downloadCSV = (data: Record<string, unknown>[], filename: string) => {
     if (data.length === 0) {
       alert("No data to export")
       return

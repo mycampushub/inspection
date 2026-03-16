@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { dashboardStats } from "../lib/local-data"
 import {
-  ArrowDown,
   ArrowUp,
   Calendar,
   DollarSign,
@@ -77,26 +76,13 @@ import {
 
 const COLORS = ["#0088FE", "##00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
-interface DashboardStats {
-  activeContracts: number
-  totalSuppliers: number
-  totalContracts: number
-  totalSpend: number
-  suppliersFromUAE: number
-  icvCertifiedSuppliers: number
-  isoCertifiedSuppliers: number
-  upcomingContracts: any[]
-  pendingRequests: number
-  activeRfx: number
-}
-
 export default function Dashboard() {
   const router = useNavigate()
   const [timeframe, setTimeframe] = useState("year")
   const [showFilters, setShowFilters] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const stats = dashboardStats()
-  const [dashboardState, setDashboardState] = useState({
+  const [dashboardState] = useState({
     activeContracts: stats.activeContracts,
     totalContracts: stats.activeContracts + 15,
     totalSuppliers: stats.totalSuppliers,
@@ -110,7 +96,7 @@ export default function Dashboard() {
   })
   const [viewDetailsOpen, setViewDetailsOpen] = useState(false)
   const [setAlertsOpen, setSetAlertsOpen] = useState(false)
-  const [selectedChartData, setSelectedChartData] = useState<any>(null)
+  const [selectedChartData, setSelectedChartData] = useState<unknown>(null)
 
   // Derived data from API
   const spendByCategory = [
@@ -164,7 +150,7 @@ export default function Dashboard() {
     router.push("/sourcing-contracts/contracts?status=Expiring Soon")
   }
 
-  const handleDownloadCSV = (chartName: string, data: any[]) => {
+  const handleDownloadCSV = (chartName: string, data: unknown[]) => {
     const headers = Object.keys(data[0]).join(",")
     const rows = data.map((row) => Object.values(row).join(",")).join("\n")
     const csvContent = `${headers}\n${rows}`
@@ -179,7 +165,7 @@ export default function Dashboard() {
     URL.revokeObjectURL(url)
   }
 
-  const handleViewDetails = (chartName: string, data: any[]) => {
+  const handleViewDetails = (chartName: string, data: unknown[]) => {
     setSelectedChartData({ name: chartName, data })
     setViewDetailsOpen(true)
   }
@@ -901,7 +887,7 @@ export default function Dashboard() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => (percent && percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : "")}
+                      label={({ percent }) => (percent && percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : "")}
                     >
                       {[
                         { color: "#74c0fc" },

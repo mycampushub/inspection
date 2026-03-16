@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import {
   ArrowLeft,
   Calendar,
   Check,
   ChevronDown,
-  Clock,
   Download,
   Filter,
   Mail,
@@ -18,13 +17,12 @@ import {
   RefreshCw,
   Search,
   Shield,
-  ThumbsUp,
   Eye,
   Trash2,
   AlertCircle,
 } from "lucide-react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
+import { Avatar, AvatarFallback } from "../components/ui/avatar"
 import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card"
@@ -167,7 +165,7 @@ export default function SupplierDirectory() {
   }
 
   // View document
-  const handleViewDocument = (document: any) => {
+  const handleViewDocument = (document: unknown) => {
     alert(`Viewing document: ${document.name}\nType: ${document.type}\nSize: ${document.size} bytes\nUploaded by: ${document.uploadedBy}`)
   }
 
@@ -748,7 +746,7 @@ export default function SupplierDirectory() {
                 <Label htmlFor="type">Type</Label>
                 <Select
                   value={formData.type || "Preferred"}
-                  onValueChange={(value: string) => setFormData({ ...formData, type: value as any })}
+                  onValueChange={(value: string) => setFormData({ ...formData, type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -791,7 +789,7 @@ export default function SupplierDirectory() {
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={formData.status || "Active"}
-                  onValueChange={(value: string) => setFormData({ ...formData, status: value as any })}
+                  onValueChange={(value: string) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -807,7 +805,7 @@ export default function SupplierDirectory() {
                 <Label htmlFor="riskLevel">Risk Level</Label>
                 <Select
                   value={formData.riskLevel || "Medium"}
-                  onValueChange={(value: string) => setFormData({ ...formData, riskLevel: value as any })}
+                  onValueChange={(value: string) => setFormData({ ...formData, riskLevel: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -925,7 +923,7 @@ export default function SupplierDirectory() {
                 <Label htmlFor="edit-type">Type</Label>
                 <Select
                   value={formData.type || "Preferred"}
-                  onValueChange={(value: string) => setFormData({ ...formData, type: value as any })}
+                  onValueChange={(value: string) => setFormData({ ...formData, type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -968,7 +966,7 @@ export default function SupplierDirectory() {
                 <Label htmlFor="edit-status">Status</Label>
                 <Select
                   value={formData.status || "Active"}
-                  onValueChange={(value: string) => setFormData({ ...formData, status: value as any })}
+                  onValueChange={(value: string) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -984,7 +982,7 @@ export default function SupplierDirectory() {
                 <Label htmlFor="edit-riskLevel">Risk Level</Label>
                 <Select
                   value={formData.riskLevel || "Medium"}
-                  onValueChange={(value: string) => setFormData({ ...formData, riskLevel: value as any })}
+                  onValueChange={(value: string) => setFormData({ ...formData, riskLevel: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />

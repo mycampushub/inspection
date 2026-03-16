@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import {
   ArrowLeft,
-  BarChart3,
   Calendar,
   Check,
   ChevronDown,
@@ -16,21 +15,18 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Shield,
   Star,
-  ThumbsUp,
   Truck,
   Eye,
   Pencil,
   Trash2,
   AlertCircle,
-  FileText,
 } from "lucide-react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
+import { Avatar, AvatarFallback } from "../components/ui/avatar"
 import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -71,7 +67,6 @@ import { Textarea } from "../components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { SidebarInset, SidebarTrigger } from "../components/ui/sidebar"
 import { localEvaluations, localSuppliers } from "../lib/local-data"
-import type { Evaluation, Supplier } from "../lib/local-data"
 
 interface PerformanceEvaluation {
   id: string
@@ -131,7 +126,7 @@ export default function SupplierPerformance() {
   }))
 
   const [evaluations, setEvaluations] = useState<PerformanceEvaluation[]>(initialEvaluations)
-  const [suppliers, setSuppliers] = useState<Supplier[]>(localSuppliers)
+  const [suppliers] = useState<Supplier[]>(localSuppliers)
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedEvaluation, setExpandedEvaluation] = useState<string | null>(null)

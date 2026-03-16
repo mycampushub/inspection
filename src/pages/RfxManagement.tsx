@@ -60,7 +60,7 @@ import { SidebarInset, SidebarTrigger } from "../components/ui/sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Textarea } from "../components/ui/textarea"
 import { localRfxEvents, localCategories } from "../lib/local-data"
-import type { RfxEvent, EvaluationCriterion, RfxResponse, Document } from "../lib/local-data"
+import type { RfxEvent, Document } from "../lib/local-data"
 
 interface RfxFormData {
   title: string
@@ -99,7 +99,7 @@ export default function RFxManagement() {
 
   // Data states - initialized with local data for instant loading
   const [rfxEvents, setRfxEvents] = useState<RfxEvent[]>(localRfxEvents)
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [selectedRfx, setSelectedRfx] = useState<RfxEvent | null>(null)
 
   // Dialog states

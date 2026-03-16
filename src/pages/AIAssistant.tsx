@@ -11,7 +11,7 @@ import { Card, CardContent } from "../components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu"
 import { Input } from "../components/ui/input"
 import { SidebarInset, SidebarTrigger } from "../components/ui/sidebar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { ScrollArea } from "../components/ui/scroll-area"
 
 // Types
@@ -99,7 +99,7 @@ export default function AIAssistant() {
         memoryStorage.setItem('ai-assistant-history', JSON.stringify(newHistory))
       }
     }
-  }, [messages])
+  }, [messages, conversationHistory])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {

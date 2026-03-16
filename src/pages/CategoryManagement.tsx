@@ -12,9 +12,7 @@ import {
   MoreHorizontal,
   Plus,
   Search,
-  Trash2,
   Users,
-  X,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import {
@@ -103,7 +101,7 @@ export default function CategoryManagement() {
   
   // State
   const [categories, setCategories] = useState<Category[]>(localCategories())
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<number[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
@@ -341,9 +339,10 @@ export default function CategoryManagement() {
   }
 
   // Effects - update categories when search term changes
+  // eslint-disable-next-line react-hooks/purity
   useEffect(() => {
     fetchCategories()
-  }, [searchTerm])
+  }, [searchTerm, fetchCategories])
 
   // Calculate totals
   const totalSpend = categories.reduce((sum, category) => sum + category.spend, 0)
@@ -447,8 +446,8 @@ export default function CategoryManagement() {
     router.push(`/sourcing-contracts/contracts?category=${encodeURIComponent(category.name)}`)
   }
 
-  const currencyTooltipFormatter = (value: any) => formatCurrency(value || 0)
-  const supplierTooltipFormatter = (value: any) => `${value || 0} suppliers`
+  const currencyTooltipFormatter = (value: unknown) => formatCurrency((value as number) || 0)
+  const supplierTooltipFormatter = (value: unknown) => `${(value as number) || 0} suppliers`
 
   if (isLoading) {
     return (
@@ -529,7 +528,7 @@ export default function CategoryManagement() {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: { name: string; percent: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -582,7 +581,7 @@ export default function CategoryManagement() {
                       label: cat.name,
                       color: `hsl(var(--chart-${(idx % 5) + 1}))`,
                     },
-                  }), {} as any)}
+                  }), {} as Record<string, { label: string; color: string }>)}
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={categoryTrendData}>
@@ -623,7 +622,7 @@ export default function CategoryManagement() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: { name: string; percent: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
                         {supplierDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -653,7 +652,7 @@ export default function CategoryManagement() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: { name: string; percent: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
                         {riskDistributionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={RISK_COLORS[index % RISK_COLORS.length]} />
@@ -1047,7 +1046,7 @@ export default function CategoryManagement() {
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }: any) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                        label={({ name, percent }: { name: string; percent: number }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -1112,7 +1111,7 @@ export default function CategoryManagement() {
                       label: cat.name,
                       color: `hsl(var(--chart-${(idx % 5) + 1}))`,
                     },
-                  }), {} as any)}
+                  }), {} as Record<string, { label: string; color: string }>)}
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={categoryTrendData}>

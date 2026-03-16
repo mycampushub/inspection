@@ -65,8 +65,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../components
 import {
   dashboardStats,
   localContracts,
-  localSuppliers,
-  localCategories,
   spendAnalysisData,
 } from "../lib/local-data"
 import { memoryStorage } from "../lib/memory-storage"
@@ -96,7 +94,7 @@ const supplierPerformance = [
 const topSuppliers = spendAnalysisData.spendBySupplier
   .filter((s) => s.name !== "Other Suppliers")
   .slice(0, 5)
-  .map((supplier, index) => ({
+  .map((supplier) => ({
     name: supplier.name,
     spend: supplier.value,
     change: Math.floor(Math.random() * 20) - 5, // Simulate YoY change
@@ -492,6 +490,7 @@ const defaultDashboard = [
 export default function ReportingAnalytics() {
   // Force a re-render on initial load to fix styling issues
   const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/purity
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -600,12 +599,13 @@ export default function ReportingAnalytics() {
         handleRefresh()
       }, interval)
       // Store interval ID for cleanup
-      ;(window as any).autoRefreshIntervalId = intervalId
+      ;(window as unknown as { autoRefreshIntervalId?: ReturnType<typeof setInterval> }).autoRefreshIntervalId = intervalId
       alert(`Auto-refresh enabled: ${autoRefreshInterval} seconds`)
     } else {
       // Clear auto-refresh
-      if ((window as any).autoRefreshIntervalId) {
-        clearInterval((window as any).autoRefreshIntervalId)
+      const win = window as unknown as { autoRefreshIntervalId?: ReturnType<typeof setInterval> }
+      if (win.autoRefreshIntervalId) {
+        clearInterval(win.autoRefreshIntervalId)
       }
       alert("Auto-refresh disabled")
     }
@@ -669,7 +669,7 @@ export default function ReportingAnalytics() {
   }
 
   // Handle drag start
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, widgetId: string, index: number) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, widgetId: string) => {
     setDraggedWidget(widgetId)
     e.dataTransfer.setData("text/plain", widgetId)
 
@@ -982,7 +982,7 @@ export default function ReportingAnalytics() {
                     dragOverIndex === index ? "widget-drop-target" : ""
                   }`}
                   draggable
-                  onDragStart={(e) => handleDragStart(e, widgetId, index)}
+                  onDragStart={(e) => handleDragStart(e, widgetId)}
                   onDragEnd={handleDragEnd}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDrop={(e) => handleDrop(e, index)}

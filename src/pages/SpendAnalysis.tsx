@@ -13,7 +13,6 @@ import {
   RefreshCw,
   Save,
   Share2,
-  X,
 } from "lucide-react"
 import {
   Area,
@@ -32,7 +31,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { addDays, format, subDays, subMonths, subYears } from "date-fns"
+import { format } from "date-fns"
 
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
@@ -76,7 +75,7 @@ interface SavedView {
 export default function SpendAnalysis() {
   const [timeframe, setTimeframe] = useState("year")
   const [view, setView] = useState("overview")
-  const [spendData, setSpendData] = useState<SpendData>({
+  const [spendData] = useState<SpendData>({
     totalSpend: spendAnalysisData.totalSpend,
     categories: spendAnalysisData.categories,
     activeSuppliers: spendAnalysisData.activeSuppliers,
@@ -87,7 +86,7 @@ export default function SpendAnalysis() {
     spendTrend: spendAnalysisData.spendTrend,
     categoryTrend: spendAnalysisData.categoryTrend,
   })
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   
   // Custom date range state
@@ -111,62 +110,9 @@ export default function SpendAnalysis() {
   }
 
   // Generate mock data based on timeframe
-  const generateMockData = (tf: string): SpendData => {
-    const multiplier = tf === 'month' ? 0.1 : tf === 'quarter' ? 0.3 : tf === 'ytd' ? 0.8 : 1
-    
-    return {
-      totalSpend: Math.round(24500000 * multiplier),
-      categories: 15,
-      activeSuppliers: 248,
-      avgCostPerOrder: 12500,
-      spendByCategory: [
-        { name: "IT Equipment", value: Math.round(4000000 * multiplier) },
-        { name: "Office Supplies", value: Math.round(1500000 * multiplier) },
-        { name: "Professional Services", value: Math.round(3000000 * multiplier) },
-        { name: "Marketing", value: Math.round(2000000 * multiplier) },
-        { name: "Facilities", value: Math.round(2500000 * multiplier) },
-      ],
-      spendBySupplier: [
-        { name: "Tech Solutions Inc.", value: Math.round(2500000 * multiplier) },
-        { name: "Office Depot", value: Math.round(1200000 * multiplier) },
-        { name: "Consulting Partners", value: Math.round(1800000 * multiplier) },
-        { name: "Marketing Agency", value: Math.round(1500000 * multiplier) },
-        { name: "Facilities Management", value: Math.round(1200000 * multiplier) },
-        { name: "Other Suppliers", value: Math.round(2800000 * multiplier) },
-      ],
-      spendByDepartment: [
-        { name: "IT", value: Math.round(5000000 * multiplier) },
-        { name: "Marketing", value: Math.round(3000000 * multiplier) },
-        { name: "Operations", value: Math.round(4000000 * multiplier) },
-        { name: "HR", value: Math.round(1500000 * multiplier) },
-        { name: "Finance", value: Math.round(2000000 * multiplier) },
-      ],
-      spendTrend: [
-        { month: "Jan", value: Math.round(1200000 * multiplier) },
-        { month: "Feb", value: Math.round(1900000 * multiplier) },
-        { month: "Mar", value: Math.round(1800000 * multiplier) },
-        { month: "Apr", value: Math.round(2400000 * multiplier) },
-        { month: "May", value: Math.round(1700000 * multiplier) },
-        { month: "Jun", value: Math.round(2100000 * multiplier) },
-        { month: "Jul", value: Math.round(2300000 * multiplier) },
-        { month: "Aug", value: Math.round(2800000 * multiplier) },
-        { month: "Sep", value: Math.round(2600000 * multiplier) },
-        { month: "Oct", value: Math.round(2900000 * multiplier) },
-        { month: "Nov", value: Math.round(3100000 * multiplier) },
-        { month: "Dec", value: Math.round(3400000 * multiplier) },
-      ],
-      categoryTrend: [
-        { name: "Jan", IT: Math.round(500000 * multiplier), Marketing: Math.round(300000 * multiplier), Operations: Math.round(400000 * multiplier), HR: Math.round(100000 * multiplier), Finance: Math.round(150000 * multiplier) },
-        { name: "Feb", IT: Math.round(550000 * multiplier), Marketing: Math.round(320000 * multiplier), Operations: Math.round(420000 * multiplier), HR: Math.round(110000 * multiplier), Finance: Math.round(160000 * multiplier) },
-        { name: "Mar", IT: Math.round(580000 * multiplier), Marketing: Math.round(350000 * multiplier), Operations: Math.round(450000 * multiplier), HR: Math.round(120000 * multiplier), Finance: Math.round(170000 * multiplier) },
-        { name: "Apr", IT: Math.round(620000 * multiplier), Marketing: Math.round(380000 * multiplier), Operations: Math.round(480000 * multiplier), HR: Math.round(130000 * multiplier), Finance: Math.round(180000 * multiplier) },
-        { name: "May", IT: Math.round(650000 * multiplier), Marketing: Math.round(400000 * multiplier), Operations: Math.round(500000 * multiplier), HR: Math.round(140000 * multiplier), Finance: Math.round(190000 * multiplier) },
-        { name: "Jun", IT: Math.round(680000 * multiplier), Marketing: Math.round(420000 * multiplier), Operations: Math.round(520000 * multiplier), HR: Math.round(150000 * multiplier), Finance: Math.round(200000 * multiplier) },
-      ],
-    }
-  }
 
   // Load saved views from memory storage
+  // eslint-disable-next-line react-hooks/purity
   useEffect(() => {
     const saved = memoryStorage.getItem('spendAnalysisViews')
     if (saved) {

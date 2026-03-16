@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { ArrowUpDown, MoreHorizontal, Plus, Search, SlidersHorizontal, X, Trash2, Edit, Eye, CheckCircle, XCircle } from "lucide-react"
 
 import { Badge } from "../components/ui/badge"
@@ -34,7 +34,7 @@ import { localProcurementRequests, type ProcurementRequest as LocalProcurementRe
 
 export default function ProcurementRequests() {
   const [requests, setRequests] = useState<LocalProcurementRequest[]>(localProcurementRequests())
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // UI States
@@ -68,13 +68,6 @@ export default function ProcurementRequests() {
   const [newItem, setNewItem] = useState({ name: "", quantity: 1, unitPrice: 0 })
   const [rejectComments, setRejectComments] = useState("")
   const [approveComments, setApproveComments] = useState("")
-  
-  // Fetch requests from local data (no API call needed)
-  const fetchRequests = async () => {
-    setLoading(false)
-    // Data is already in state, no API call needed
-    // Filters are applied via filteredRequests computed below
-  }
   
   // No need to fetch on mount since data is already loaded
   // Filters work via client-side filtering in filteredRequests
@@ -996,7 +989,7 @@ export default function ProcurementRequests() {
                 <div>
                   <Label className="text-muted-foreground">Approval History</Label>
                   <div className="border rounded-lg p-4 space-y-2 mt-2">
-                    {selectedRequest.approvalHistory.map((history: any, index: number) => (
+                    {selectedRequest.approvalHistory.map((history: unknown, index: number) => (
                       <div key={index} className="p-2 bg-muted rounded">
                         <div className="flex justify-between">
                           <span className="font-medium">{history.action}</span>

@@ -152,7 +152,7 @@ export interface RfxResponse {
   submittedDate?: string;
   totalAmount?: number;
   score?: number;
-  answers: { [questionId: string]: any };
+  answers: { [questionId: string]: unknown };
   documents?: Document[];
 }
 
