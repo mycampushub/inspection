@@ -32,10 +32,11 @@ function AppLayout() {
   )
 }
 
-const router = createBrowserRouter([
-  {
-    element: <AppLayout />,
-    children: [
+const router = createBrowserRouter(
+  [
+    {
+      element: <AppLayout />,
+      children: [
       {
         path: "/",
         element: <Dashboard />,
@@ -86,7 +87,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-])
+], { basename: "/procurement-management" } as any)
 
 function App() {
   return <RouterProvider router={router} />
