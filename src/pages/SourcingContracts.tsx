@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import {
@@ -135,19 +135,19 @@ export default function SourcingContracts() {
   const [renewalNotes, setRenewalNotes] = useState("")
 
   // Fetch RFx events (using local data)
-  const fetchRfxEvents = () => {
+  const fetchRfxEvents = useCallback(() => {
     setLoading(true)
     setLoading(false)
-  }
+  }, [])
 
   // Fetch contracts (using local data)
-  const fetchContracts = () => {
+  const fetchContracts = useCallback(() => {
     setLoading(true)
     setLoading(false)
-  }
+  }, [])
 
   // Fetch dashboard stats (using local data)
-  const fetchStats = () => {
+  const fetchStats = useCallback(() => {
     const activeContractsCount = contracts.filter(c => c.status === "Active").length
     const expiringSoonCount = contracts.filter(c => c.status === "Expiring Soon").length
     const totalValue = contracts.reduce((sum, c) => sum + c.value, 0)
@@ -158,14 +158,14 @@ export default function SourcingContracts() {
       expiringContracts: expiringSoonCount,
       totalContractValue: totalValue,
     })
-  }
+  }, [contracts, rfxEvents, setStats])
 
   // Fetch all data (using local data)
-  const fetchAllData = () => {
+  const fetchAllData = useCallback(() => {
     setLoading(true)
     fetchStats()
     setLoading(false)
-  }
+  }, [fetchStats])
 
   // Initial data load
   // eslint-disable-next-line react-hooks/purity

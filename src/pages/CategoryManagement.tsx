@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Fragment } from "react"
+import { useState, useEffect, useCallback, Fragment } from "react"
 import { useNavigate } from "react-router-dom"
 import { localCategories } from "../lib/local-data"
 import {
@@ -148,7 +148,7 @@ export default function CategoryManagement() {
   })
 
   // No need to fetch - using local data
-  const fetchCategories = () => {
+  const fetchCategories = useCallback(() => {
     // Filter local data based on search term
     if (searchTerm) {
       const filtered = localCategories().filter((cat: Category) => 
@@ -159,7 +159,7 @@ export default function CategoryManagement() {
     } else {
       setCategories(localCategories())
     }
-  }
+  }, [searchTerm])
 
   // Fetch category by ID
   const fetchCategory = async (id: number) => {
