@@ -1,13 +1,5 @@
 {
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://careertodonew.vercel.app/"
-        }
-      ]
-    }
+  "rewrites": [
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }
